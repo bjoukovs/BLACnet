@@ -1,5 +1,6 @@
-
-
+from bs4 import BeautifulSoup
+import os
+import requests
 
 
 class CQRI():
@@ -53,3 +54,42 @@ class CQRI():
         return self.tweet_dict
 
 
+    def download_tweets(self, output_dir):
+
+        # Create directory
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        for key, val in self.tweet_dict.items():
+
+            tweet_ids = val[0]
+
+            print('Getting tweets of', key)
+
+            for tweet_id in tweet_ids:
+
+                filename = output_dir + '/' + str(tweet_id) + '.txt'
+
+                tweet_url = 'https://twitter.com/statuses/'+tweet_id
+
+                r = requests.get(tweet_url)
+                soup = BeautifulSoup(r.text, 'html.parser')
+
+                tweets = soup.findAll('p', class_='tweet-text')
+
+                if len(tweets) > 0:
+                    with open(filename, 'w', encoding='utf-8') as myfile:
+                        myfile.write(tweets[0].text)
+                        myfile.close()
+                else:
+                    print('Warning: tweet did not exist')
+
+
+
+            break
+
+
+
+
+dataset = CQRI('../Twitter.txt')
+dataset.download_tweets('tweets')
