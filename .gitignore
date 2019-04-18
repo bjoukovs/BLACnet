@@ -107,3 +107,13 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# datasets
+
+dataset/credbank/*
+dataset/pheme/*
+dataset/rumdect/*
+
+!dataset/credbank/.gitkeep
+!dataset/pheme/.gitkeep
+!dataset/rumdect/.gitkeep
