@@ -116,7 +116,7 @@ class CQRI():
             with open(filename, 'w', encoding='utf-8') as myfile:
                 json.dump(tweets_text, fp=myfile, ensure_ascii=False)
 
-            print('Progress: {:d} %'.format(progress/len(self.tweet_dict)))
+            print('Progress: {:d} %'.format(int(progress/len(self.tweet_dict))))
             progress += 1
 
 
