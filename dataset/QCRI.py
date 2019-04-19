@@ -73,8 +73,6 @@ class CQRI():
 
         progress = 0
 
-        tweets_text = {}
-
         # Create directory for tweets
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -85,38 +83,43 @@ class CQRI():
             filename = output_dir + '/'  + key + '.json'
             print('Getting tweets of', key)
 
-            for tweet_id in tweet_ids:
+            tweets_text = {}
 
-                # Writing all tweets to txt files
+            if not os.path.exists(filename):
 
-                # Tweet URL
-                tweet_url = 'https://twitter.com/statuses/'+tweet_id
-                #Headers for correct date time format
-                headers = {"Accept-Language": "en-US"}
+                for tweet_id in tweet_ids:
 
-                r = requests.get(tweet_url, headers=headers)
+                    # Writing all tweets to txt files
 
-                soup = BeautifulSoup(r.text, 'html.parser')
 
-                tweets = soup.findAll('p', class_='tweet-text')
-                metadata = soup.findAll('span', class_='metadata')
+                    # Tweet URL
+                    tweet_url = 'https://twitter.com/statuses/'+tweet_id
+                    #Headers for correct date time format
+                    headers = {"Accept-Language": "en-US"}
 
-                if len(tweets) > 0:
+                    r = requests.get(tweet_url, headers=headers)
 
-                    #parse date time in US format
-                    date = metadata[0].text.strip()
+                    soup = BeautifulSoup(r.text, 'html.parser')
 
-                    #Save text
-                    tweets_text[tweet_id] = (date, tweets[0].text)
+                    tweets = soup.findAll('p', class_='tweet-text')
+                    metadata = soup.findAll('span', class_='metadata')
 
-                else:
-                    tweets_text[tweet_id] = (None, None)
+                    if len(tweets) > 0:
 
-            # Convert dictionnary to json
-            with open(filename, 'w', encoding='utf-8') as myfile:
-                json.dump(tweets_text, fp=myfile, ensure_ascii=False)
+                        #parse date time in US format
+                        date = metadata[0].text.strip()
 
-            print('Progress: {:d} %'.format(int(progress/len(self.tweet_dict))))
+                        #Save text
+                        tweets_text[tweet_id] = (date, tweets[0].text)
+
+                    else:
+                        tweets_text[tweet_id] = (None, None)
+
+                # Convert dictionnary to json
+                with open(filename, 'w', encoding='utf-8') as myfile:
+                    json.dump(tweets_text, fp=myfile, ensure_ascii=False)
+
+            print('Progress: {:d} %'.format(int(100*progress/len(self.tweet_dict))))
             progress += 1
 
 
@@ -150,7 +153,7 @@ class CQRI():
 
 dataset = CQRI('../Twitter.txt')
 
-dataset.download_tweets('credbank/tweets')
+dataset.download_tweets('rumdect/tweets')
 
-#dict = dataset.get_tweets('credbank/tweets/E17.json')
+#dict = dataset.get_tweets('rumdect/tweets/E17.json')
 #print(dict)
