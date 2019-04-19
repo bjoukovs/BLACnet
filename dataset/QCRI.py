@@ -9,14 +9,14 @@ from math import floor
 
 class TweetDownloaderThread(Thread):
 
-    def __init__(self, dict, output_dir, id):
+    def __init__(self, dict, output_dir, id, source):
 
         Thread.__init__(self)
 
         self.dict = dict
         self.output_dir = output_dir
         self.id = id
-
+        self.source = source
 
     def run(self):
 
@@ -63,6 +63,9 @@ class TweetDownloaderThread(Thread):
                     json.dump(tweets_text, fp=myfile, ensure_ascii=False)
 
 
+            self.source.notify()
+
+
 
 
 
@@ -79,6 +82,7 @@ class CQRI():
 
         self.tweet_dict = self.parse()
 
+        self.progress = 0
 
     def parse(self):
 
@@ -132,14 +136,14 @@ class CQRI():
         Saves (None, None) if tweet does not exists
         '''
 
-        progress = 0
+        self.progress = 0
 
         # Create directory for tweets
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
 
-        number_of_threads = 12
+        number_of_threads = 24
 
         dicts_array = [{} for i in range(number_of_threads)]
 
@@ -158,57 +162,15 @@ class CQRI():
 
 
         #creating threads
-        threads = [TweetDownloaderThread(dicts_array[i], output_dir, i) for i in range(len(dicts_array))]
+        threads = [TweetDownloaderThread(dicts_array[i], output_dir, i, self) for i in range(len(dicts_array))]
         [thread.start() for thread in threads]
         [thread.join() for thread in threads]
 
+    def notify(self):
 
+        self.progress += 1
+        print('Progress:', str(int(100/len(self.tweet_dict)*self.progress)), '%')
 
-
-        '''for key, val in self.tweet_dict.items():
-
-            tweet_ids = val[0]
-            filename = output_dir + '/'  + key + '.json'
-            print('Getting tweets of', key, ', there is', str(len(tweet_ids)), 'tweets to gather')
-
-            tweets_text = {}
-
-            if not os.path.exists(filename):
-
-                for tweet_id in tweet_ids:
-
-                    # Writing all tweets to txt files
-
-
-                    # Tweet URL
-                    tweet_url = 'https://twitter.com/statuses/'+tweet_id
-                    #Headers for correct date time format
-                    headers = {"Accept-Language": "en-US"}
-
-                    r = requests.get(tweet_url, headers=headers)
-
-                    soup = BeautifulSoup(r.text, 'html.parser')
-
-                    tweets = soup.findAll('p', class_='tweet-text')
-                    metadata = soup.findAll('span', class_='metadata')
-
-                    if len(tweets) > 0:
-
-                        #parse date time in US format
-                        date = metadata[0].text.strip()
-
-                        #Save text
-                        tweets_text[tweet_id] = (date, tweets[0].text)
-
-                    else:
-                        tweets_text[tweet_id] = (None, None)
-
-                # Convert dictionnary to json
-                with open(filename, 'w', encoding='utf-8') as myfile:
-                    json.dump(tweets_text, fp=myfile, ensure_ascii=False)
-
-            print('Progress: {:d} %'.format(int(100*progress/len(self.tweet_dict))))
-            progress += 1'''
 
 
     def get_tweets(self, json_path):
