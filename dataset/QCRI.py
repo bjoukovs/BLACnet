@@ -9,7 +9,7 @@ from math import floor
 
 class TweetDownloaderThread(Thread):
 
-    def __init__(self, dict, output_dir, id, source):
+    def __init__(self, output_dir, id, source):
 
         Thread.__init__(self)
 
@@ -20,7 +20,8 @@ class TweetDownloaderThread(Thread):
 
     def run(self):
 
-        for key, val in self.dict.items():
+        key, val, status = self.source.request_eventid()
+        while status is not None:
 
             tweet_ids = val[0]
             filename = self.output_dir + '/'  + key + '.json'
@@ -63,7 +64,7 @@ class TweetDownloaderThread(Thread):
                     json.dump(tweets_text, fp=myfile, ensure_ascii=False)
 
 
-            self.source.notify()
+            key, val, status = self.source.request_eventid()
 
 
 
@@ -80,7 +81,7 @@ class CQRI():
 
         self.twitter_path = twitter_path
 
-        self.tweet_dict = self.parse()
+        self.tweet_dict, self.key_list = self.parse()
 
         self.progress = 0
 
@@ -90,12 +91,15 @@ class CQRI():
         Returns dict with
         key : Event ID
         val : ([list of tweets ID], label)
+
+        Also returns a list of all the keys
         '''
 
 
         with open(self.twitter_path) as myfile:
 
             tweet_dict = {}
+            key_list = []
 
             for line in myfile:
 
@@ -112,9 +116,11 @@ class CQRI():
 
                 tweet_dict[eid] = (tweet_ids, label)
 
+                key_list.append(eid)
+
                 #print('building entry', eid, label, tweet_ids)
 
-            return tweet_dict
+            return tweet_dict, key_list
 
 
     def get_dict(self):
@@ -143,33 +149,30 @@ class CQRI():
             os.makedirs(output_dir)
 
 
-        number_of_threads = 24
+        number_of_threads = 6
 
         dicts_array = [{} for i in range(number_of_threads)]
 
-        #Splitting dictionnary
-        i = 0
-        total_length = len(self.tweet_dict)
-        for key, val in self.tweet_dict.items():
-
-            dict_idx = floor(i/total_length*number_of_threads)
-
-            dicts_array[dict_idx][key] = val
-
-            i += 1
-
-        [print(len(d)) for d in dicts_array]
-
 
         #creating threads
-        threads = [TweetDownloaderThread(dicts_array[i], output_dir, i, self) for i in range(len(dicts_array))]
+        threads = [TweetDownloaderThread(output_dir, i, self) for i in range(len(dicts_array))]
         [thread.start() for thread in threads]
         [thread.join() for thread in threads]
 
-    def notify(self):
+    def request_eventid(self):
+
+        status, key, val = None, None, None
+
+        if self.progress < len(self.tweet_dict)-1:
+            key = self.key_list[self.progress]
+            val = self.tweet_dict[key]
+            status = 1
+
 
         self.progress += 1
         print('Progress:', str(int(100/len(self.tweet_dict)*self.progress)), '%')
+
+        return key, val, status
 
 
 
