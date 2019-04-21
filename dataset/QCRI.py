@@ -3,7 +3,7 @@ import os
 import requests
 import json
 import datetime
-from threading import Thread
+from threading import Thread, Lock
 from math import floor
 
 
@@ -84,6 +84,7 @@ class CQRI():
         self.tweet_dict, self.key_list = self.parse()
 
         self.progress = 0
+        self.threadLocker = Lock()
 
     def parse(self):
 
@@ -149,7 +150,7 @@ class CQRI():
             os.makedirs(output_dir)
 
 
-        number_of_threads = 6
+        number_of_threads = 3
 
         dicts_array = [{} for i in range(number_of_threads)]
 
@@ -161,6 +162,8 @@ class CQRI():
 
     def request_eventid(self):
 
+        self.threadLocker.acquire()
+
         status, key, val = None, None, None
 
         if self.progress < len(self.tweet_dict)-1:
@@ -170,7 +173,9 @@ class CQRI():
 
 
         self.progress += 1
-        print('Progress:', str(int(100/len(self.tweet_dict)*self.progress)), '%')
+        print('Progress:', str(self.progress), 'out of', str(len(self.tweet_dict)))
+
+        self.threadLocker.release()
 
         return key, val, status
 
@@ -193,7 +198,12 @@ class CQRI():
         for key, val in dict.items():
             if val[0] is not None:
 
-                date_parsed = datetime.datetime.strptime(val[0], '%H:%M %p - %d %b %Y')
+                metadata = val[0]
+                #Some tweets have date + location, extract date only
+                if '\n' in metadata:
+                    metadata = metadata.split('\n')[0]
+
+                date_parsed = datetime.datetime.strptime(metadata, '%H:%M %p - %d %b %Y')
                 dict[key][0] = date_parsed
 
 
@@ -210,9 +220,22 @@ class CQRI():
 
 # EXAMPLES OF USE
 
-dataset = CQRI('../Twitter.txt')
+'''dataset = CQRI('../Twitter.txt')
 
-dataset.download_tweets('rumdect/tweets')
+#dataset.download_tweets('rumdect/tweets')
 
-#dict = dataset.get_tweets('rumdect/tweets/E17.json')
-#print(dict)
+dict = dataset.get_tweets('rumdect/tweets/E297.json')
+print(dict)
+
+# Deleting the wrong entries
+count = 0
+for key,val in dataset.get_dict().items():
+    path = 'rumdect/tweets/'+key+'.json'
+    if os.path.exists(path):
+        try:
+            tweets = dataset.get_tweets(path)
+        except:
+            print('error on the tweets', key)
+            count += 1
+
+print(count)'''
