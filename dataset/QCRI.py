@@ -220,14 +220,14 @@ class CQRI():
 
 # EXAMPLES OF USE
 
-'''dataset = CQRI('../Twitter.txt')
+dataset = CQRI('../Twitter.txt')
 
 #dataset.download_tweets('rumdect/tweets')
 
 dict = dataset.get_tweets('rumdect/tweets/E297.json')
 print(dict)
 
-# Deleting the wrong entries
+'''# Deleting the wrong entries
 count = 0
 for key,val in dataset.get_dict().items():
     path = 'rumdect/tweets/'+key+'.json'
