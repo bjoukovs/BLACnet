@@ -117,3 +117,7 @@ dataset/rumdect/*
 !dataset/credbank/.gitkeep
 !dataset/pheme/.gitkeep
 !dataset/rumdect/.gitkeep
+
+#tweets
+
+feature_extraction/events/
