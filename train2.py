@@ -13,7 +13,7 @@ print(model.summary())
 #### Optimizer ####
 optimizer = keras.optimizers.Adam()
 
-model.compile(optimizer=optimizer, loss=keras.losses.binary_crossentropy, metrics='val_loss')
+model.compile(optimizer=optimizer, loss=keras.losses.binary_crossentropy, metrics=[keras.metrics.categorical_accuracy, keras.metrics.binary_crossentropy])
 
 #### Callbacks ####
 checkpoint = keras.callbacks.ModelCheckpoint('checkpoints/'+NAME+'.hdf5', monitor='val_loss', save_best_only=True)
