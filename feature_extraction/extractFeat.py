@@ -2,6 +2,7 @@
 #Append path
 import sys
 sys.path.append('../dataset')
+#sys.path.append('../tweet_cleaning')
 sys.path.append('..')
 
 # Import OS
@@ -14,6 +15,9 @@ import os
 # CQRI to get tweets
 from QCRI import CQRI
 #import preprocessor as p
+
+import tweet_utils
+
 
 # Librairies for computations and ML
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -53,14 +57,20 @@ for keyEvent in events:
             if type(text) == str and type(date) == datetime.datetime:  # because sometimes text is just nothing, so of type None
                 text = re.sub(r"http\S+", "", text) # remove URL's
                 text = re.sub(r"@\S+","",text)     # Optional: remove user names
-                #text=re.sub(r"\\xa0\S+","",text)
+                text=re.sub(r"\\xa0\S+","",text)
                 #text = p.clean(text)
+                text=get_text_cleaned(text)
                 S_list_total.append(text)
                 
     counter += 1
     print(counter)
             
-       
+
+#np.save('Non_cleaned_tweets.npy',S_list_total)  
+
+
+#S_list_total=np.load('Non_cleaned_tweets.npy')
+
 vectorizer = TfidfVectorizer()
 dummy = vectorizer.fit(S_list_total)
 print(vectorizer.vocabulary_)
