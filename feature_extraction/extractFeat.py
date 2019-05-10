@@ -14,9 +14,9 @@ import os
 
 # CQRI to get tweets
 from QCRI import CQRI
-#import preprocessor as p
+import preprocessor as p
 
-import tweet_utils
+
 
 
 # Librairies for computations and ML
@@ -28,6 +28,11 @@ from scipy.sparse import csr_matrix
 import re # to remove URL's from tweets
 import datetime,time
 import string
+import nltk
+from nltk.stem import PorterStemmer
+from nltk.tokenize.moses import MosesDetokenizer
+from nltk.tokenize import word_tokenize
+
 
 
 ######### LOAD DATASET ##########
@@ -42,9 +47,13 @@ events = dataset.get_dict()   # start Jupyter with the command line: --NotebookA
 # Training on the whole tweets dataset to learn the vocabulary
 nbrEvents = 0
 S_list_total = [];
-#p.set_options(p.OPT.URL, p.OPT.HASHTAG, p.OPT.MENTION, p.OPT.EMOJI, p.OPT.SMILEY)
+p.set_options(p.OPT.URL, p.OPT.HASHTAG, p.OPT.MENTION, p.OPT.EMOJI, p.OPT.SMILEY)
 print("Number of events=",len(events))
 counter = 0
+#For stemming
+porter = PorterStemmer()
+#Detokenization
+detokenizer=MosesDetokenizer()
 for keyEvent in events:
     if os.path.isfile('events/'+keyEvent+'.json'):  # check that the event file exists
         nbrEvents += 1  
@@ -58,8 +67,13 @@ for keyEvent in events:
                 text = re.sub(r"http\S+", "", text) # remove URL's
                 text = re.sub(r"@\S+","",text)     # Optional: remove user names
                 text=re.sub(r"\\xa0\S+","",text)
-                #text = p.clean(text)
-                text=get_text_cleaned(text)
+                text = p.clean(text)
+                tokens = word_tokenize(text)
+                text = [porter.stem(word) for word in tokens]
+                text = [word for word in text if word.isalpha()]
+                text=detokenizer.detokenize(text,return_str=True)
+                text=text.lower()
+                print(text)
                 S_list_total.append(text)
                 
     counter += 1
