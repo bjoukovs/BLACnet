@@ -30,8 +30,9 @@ import datetime,time
 import string
 import nltk
 from nltk.stem import PorterStemmer
-from nltk.tokenize.moses import MosesDetokenizer
+#from nltk.tokenize.moses import MosesDetokenizer
 from nltk.tokenize import word_tokenize
+from sacremoses import MosesTokenizer, MosesDetokenizer
 
 
 
@@ -73,7 +74,7 @@ for keyEvent in events:
                 text = [word for word in text if word.isalpha()]
                 text=detokenizer.detokenize(text,return_str=True)
                 text=text.lower()
-                print(text)
+                #print(text)
                 S_list_total.append(text)
                 
     counter += 1
@@ -96,16 +97,20 @@ print(vectorizer.vocabulary_)
 N=12 #reference number of intervals
 K = 5000
 
-featuresTensor = []; # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
+featuresTensor = [] # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
+
+counter = 0
 
 for keyEvent in events:
+    counter += 1
+    print(counter)
     if os.path.isfile('events/'+keyEvent+'.json'):  # check that the event file exists
         dico = dataset.get_tweets('events/'+keyEvent+'.json')
         ev = events[keyEvent]
         label = ev[1]
 
-        S_list = [];
-        date_list = [];
+        S_list = []
+        date_list = []
 
         # Extraction of the tweet strings and date
         for keyTweet in dico:           #iterates over the keys
@@ -115,7 +120,13 @@ for keyEvent in events:
             if type(text) == str and type(date) == datetime.datetime:  # because sometimes text is just nothing, so of type None
                 text = re.sub(r"http\S+", "", text) # remove URL's
                 text = re.sub(r"@\S+","",text)     # Optional: remove user names
-                #text=re.sub(r"\\xa0\S+","",text)
+                text=re.sub(r"\\xa0\S+","",text)
+                text = p.clean(text)
+                tokens = word_tokenize(text)
+                text = [porter.stem(word) for word in tokens]
+                text = [word for word in text if word.isalpha()]
+                text=detokenizer.detokenize(text,return_str=True)
+                text=text.lower()
                 if text != '':
                     S_list.append(text)
                     date = time.mktime(date.timetuple()) # number of seconds since 1 January 1970
@@ -250,5 +261,8 @@ for keyEvent in events:
 
         featuresTensor.append((featuresMat,label))
 
-        break # TO TEST ONLY ONE EVENT
+        #break # TO TEST ONLY ONE EVENT
 #print(featuresTensor)
+
+np.save('featuresTensor.npy',featuresTensor)
+#featuresTensor=np.load('featuresTensor.npy')
