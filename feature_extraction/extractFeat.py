@@ -154,6 +154,8 @@ def cut_intervals_extract_features(dataset, events, vectorizer, N=12, K=5000):
                 for i in range(0, len(S_list)):
                     S_list_sorted[i] = S_list[idx[i]]  # S_list is sorted in ascending order w.r.t the date values
 
+                dummy = vectorizer.fit(S_list_sorted) # learn the vocabulary on each event separately
+
                 # Time interval
                 timeStart = date_list[0]
                 timeEnd = date_list[-1]
@@ -260,6 +262,8 @@ def cut_intervals_extract_features(dataset, events, vectorizer, N=12, K=5000):
                     interval = separator.join(max_interval[ii])
                     tmp = vectorizer.transform([interval])
                     vec = tmp.toarray()
+                    print(vec)
+                    vec = np.append(vec,np.zeros((1,K-vec.shape[1])))
                     featuresMat[:, ii] = vec
                 # print(featuresMat)
 
@@ -270,7 +274,7 @@ def cut_intervals_extract_features(dataset, events, vectorizer, N=12, K=5000):
     return featuresTensor
 
 
-
+'''
 ######## PART 1: getting dataset, splitting it and cleaning it #######
 
 ## LOAD DATASET ##
@@ -306,22 +310,21 @@ np.save('cleaned_tweets_val.npy',S_list_total_val)
 
 
 ######## END OF PART 1: TO COMMENT WHEN S_list_total IS SAVED #######
-
-
 '''
+
+
 ####### PART 2: CUT IN INTERVAL AND EXTRACT FEATURES #######
 
 # Parameters
 N = 12 #reference number of intervals
-K = 1000
+K = 500
 
 #Train vectorizer
-S_list_total=np.load('output/cleaned_tweets_train.npy')
+#S_list_total=np.load('output/cleaned_tweets_train.npy')
 vectorizer = TfidfVectorizer(max_features=K,stop_words='english')
-dummy = vectorizer.fit(S_list_total)
-print(vectorizer.vocabulary_)
-
-del S_list_total # delete this variable to free memory
+#dummy = vectorizer.fit(S_list_total)
+#print(vectorizer.vocabulary_)
+#del S_list_total # delete this variable to free memory
 
 
 #Extract features
@@ -348,4 +351,3 @@ np.save('output/featuresTensor_val.npy',featuresTensor)
 #featuresTensor=np.load('featuresTensor.npy')
 
 ######## END OF PART 2 ########
-'''
