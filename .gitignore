@@ -3,6 +3,7 @@
 
 #heavy feature extraction files
 feature_extraction/output/
+checkpoints/
 
 
 # Byte-compiled / optimized / DLL files
