@@ -3,7 +3,10 @@
 
 #heavy feature extraction files
 feature_extraction/output/
+feature_extraction/preprocessor/
 checkpoints/
+logs/
+doc2vec/hidden/
 
 
 # Byte-compiled / optimized / DLL files
