@@ -5,8 +5,8 @@ import utils.utils as u
 
 #### DATA ####
 
-train = np.load('feature_extraction/output/featuresTensor_train_1000.npy')
-val = np.load('feature_extraction/output/featuresTensor_val_1000.npy')
+train = np.load('feature_extraction/featuresTensor_train_1000.npy')
+val = np.load('feature_extraction/featuresTensor_val_1000.npy')
 
 K = 1000
 N = 12
@@ -24,6 +24,11 @@ print(len(np.where(labels_train==0)[0]))
 print(len(np.where(labels_val==1)[0]))
 print(len(np.where(labels_val==0)[0]))
 
+class_weight = {0:2.2/4,
+                1:1.8/4}
+
+labels_train = keras.utils.to_categorical(labels_train, num_classes=2)
+labels_val = keras.utils.to_categorical(labels_val, num_classes=2)
 
 # NOTE : THE INPUT DATA SHOULD BE NORMALIZED SOMEHOW
 
@@ -31,23 +36,26 @@ print(len(np.where(labels_val==0)[0]))
 
 #### MODEL ####
 BATCH_SIZE = 16
-NAME = "RNN"
+NAME = "RNN5"
 
 model = RNN(feat_size=K, timesteps=N, layers=1, embedding_layer=False).get_model()
 print(model.summary())
 
 
-#### Optimizer ####
-optimizer = keras.optimizers.Adam()
 
-model.compile(optimizer=optimizer, loss=keras.losses.binary_crossentropy, metrics=[keras.metrics.binary_accuracy, keras.metrics.binary_crossentropy])
+#### Optimizer ####
+optimizer = keras.optimizers.RMSprop()
+
+model.compile(optimizer=optimizer, loss=keras.losses.categorical_crossentropy, metrics=[keras.metrics.categorical_accuracy, keras.metrics.categorical_crossentropy])
 
 #### Callbacks ####
-checkpoint = keras.callbacks.ModelCheckpoint('checkpoints/'+NAME+'.hdf5', monitor='val_loss', save_best_only=True)
+#checkpoint = keras.callbacks.ModelCheckpoint('checkpoints/'+NAME+'.hdf5', monitor='val_loss', save_best_only=True)
+tb = keras.callbacks.TensorBoard('logs/'+NAME)
+#lrshedule = keras.callbacks.ReduceLROnPlateau(monitor='val_binary_accuracy', factor=0.5, patience=5, min_lr=1e-5)
 
 
 #### Train ####
-model.fit(x = inputs_train, y = labels_train, validation_data = (inputs_val, labels_val), batch_size=BATCH_SIZE, epochs=100, verbose=2, callbacks=[checkpoint])
+model.fit(x = inputs_train, y = labels_train, validation_data = (inputs_val, labels_val), batch_size=BATCH_SIZE, epochs=100, verbose=2, class_weight=class_weight, callbacks=[tb])
 
 
 

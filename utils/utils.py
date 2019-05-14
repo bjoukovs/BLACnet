@@ -9,7 +9,7 @@ def pad_events_with_zeroes(event, N, K):
 
     #check if not enough or enough timesteps: then pad with zeroes
     if event_timesteps <= N:
-        output[:event_timesteps, :] = event
+        output[N-event_timesteps:N, :] = event
 
     #otherwise trim
     else:

@@ -22,12 +22,15 @@ class RNN():
             if i==layers-1:
                 return_sequences = False
 
-            rnn = keras.layers.SimpleRNN(units=feat_size, activation='tanh', return_sequences=return_sequences)(rnn)
+            rnn = keras.layers.SimpleRNN(units=feat_size, activation='relu', return_sequences=return_sequences)(rnn)
 
+
+        #Batch normalization
+        out = keras.layers.BatchNormalization(axis=-1)(rnn)
 
         #output
-        out = keras.layers.Dense(1)(rnn)
-        out = keras.layers.Activation('sigmoid')(out)
+        out = keras.layers.Dense(2)(out)
+        out = keras.layers.Activation('softmax')(out)
 
         #Model
         self.model = keras.models.Model(inputs=[input], outputs=[out])

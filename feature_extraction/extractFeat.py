@@ -245,7 +245,7 @@ def cut_intervals_extract_features(dataset, events, vectorizer, N=12, K=5000):
                     # print(array.shape)
                     vec = np.reshape(array, (array.shape[0] * array.shape[1], 1))
                     vec = np.ndarray.flatten(vec)
-                    vec[::-1].sort()
+                    #vec[::-1].sort()
                     vec = vec[0:K]
                     # print(vec)
                     # print(vec.shape)
