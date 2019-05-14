@@ -4,6 +4,7 @@ import sys
 sys.path.append('../dataset')
 #sys.path.append('../tweet_cleaning')
 sys.path.append('..')
+sys.path.append('output/')
 
 # Import OS
 import os
@@ -35,6 +36,7 @@ from nltk.tokenize import word_tokenize
 from sacremoses import MosesTokenizer, MosesDetokenizer
 
 import collections # to sort the dictionary
+import operator
 
 
 ##TRAIN TF-IDF ON ALL TEXTS: DO IT ONE TIME AND THEN JUST LOAD FILE ##
@@ -240,24 +242,16 @@ def cut_intervals_extract_features(dataset, events, vectorizer, N=12, K=5000):
                 # print(max_interval)
                 for ii in range(0, len(max_interval)):
                     # featuresMat[:,ii] = tf_idf(max_interval[ii],True,K)   # to modify to take each interval separately
-                    tmp = vectorizer.transform(max_interval[ii])
-                    array = tmp.toarray()
-                    # print(array.shape)
-                    vec = np.reshape(array, (array.shape[0] * array.shape[1], 1))
-                    vec = np.ndarray.flatten(vec)
-                    vec[::-1].sort()
-                    vec = vec[0:K]
-                    # print(vec)
-                    # print(vec.shape)
-                    # vec = array[np.nonzero(array)]
-                    # vec[::-1].sort()
-                    # vec = np.transpose(vec[0:K])
+                    separator = ' '
+                    interval = separator.join(max_interval[ii])
+                    tmp = vectorizer.transform([interval])
+                    vec = tmp.toarray()
                     featuresMat[:, ii] = vec
                 # print(featuresMat)
 
                 featuresTensor.append((featuresMat, label))
 
-                # break # TO TEST ONLY ONE EVENT
+                break # TO TEST ONLY ONE EVENT
 
     return featuresTensor
 
@@ -303,11 +297,16 @@ np.save('cleaned_tweets_val.npy',S_list_total_val)
 
 ####### PART 2: CUT IN INTERVAL AND EXTRACT FEATURES #######
 
+# Parameters
+N = 12 #reference number of intervals
+K = 1000
+
 #Train vectorizer
 S_list_total=np.load('cleaned_tweets_train.npy')
-vectorizer = TfidfVectorizer()
+vectorizer = TfidfVectorizer(max_features=K)
 dummy = vectorizer.fit(S_list_total)
-#print(vectorizer.vocabulary_)
+print(vectorizer.vocabulary_)
+
 del S_list_total # delete this variable to free memory
 
 
@@ -319,9 +318,7 @@ events_training = collections.OrderedDict(training_events_list) # convert it bac
 val_events_list = np.load('testing_events_list.npy',allow_pickle=True) # load training event list
 events_val = collections.OrderedDict(val_events_list) # convert it back to dictionary
 
-# Parameters
-N = 12 #reference number of intervals
-K = 1000
+
 dataset = CQRI('../twitter.txt') # recreate it here when first part is commented
 
 featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_training, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
