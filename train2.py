@@ -1,13 +1,16 @@
 import keras
 from model.rnn import RNN
+import numpy as np
 
 BATCH_SIZE = 10
 NAME = "RNN"
 
-model = RNN(100, 10, layers=1, embedding_layer=False).get_model()
+model = RNN(1000, 10, layers=1, embedding_layer=False).get_model()
 print(model.summary())
 
 #### DATA ####
+
+train = np.load('feature_extraction/featureTensor_1000.npy')
 
 
 #### Optimizer ####

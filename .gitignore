@@ -1,6 +1,8 @@
 #Pycharm
 .idea/
 
+#heavy feature extraction files
+feature_extraction/output/
 
 
 # Byte-compiled / optimized / DLL files
