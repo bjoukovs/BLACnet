@@ -88,7 +88,7 @@ def clean_event(keyEvent):
     return output
 
 
-def clean_set(events):
+def clean_set_tweetIsDoc(events):
     counter = 0
     total_list = []
     for keyEvent in events:
@@ -102,6 +102,20 @@ def clean_set(events):
 
     return total_list
 
+def clean_set_eventIsDoc(events):
+    separator = ' '
+    total_list = []
+    counter = 0
+    for keyEvent in events:
+
+        partial_list = clean_event(keyEvent)
+        if partial_list is not None:
+            partial_list = separator.join(partial_list)
+            total_list.append(partial_list)
+
+        counter += 1
+        print(counter)
+    return total_list
 
 
 def cut_intervals_extract_features(dataset, events, vectorizer, N=12, K=5000):
@@ -251,12 +265,12 @@ def cut_intervals_extract_features(dataset, events, vectorizer, N=12, K=5000):
 
                 featuresTensor.append((featuresMat, label))
 
-                break # TO TEST ONLY ONE EVENT
+                #break # TO TEST ONLY ONE EVENT
 
     return featuresTensor
 
 
-'''
+
 ######## PART 1: getting dataset, splitting it and cleaning it #######
 
 ## LOAD DATASET ##
@@ -284,17 +298,17 @@ print("Number of events=",len(events))
 
 
 #Training set
-S_list_total = clean_set(events_training)
+S_list_total = clean_set_eventIsDoc(events_training)
 np.save('cleaned_tweets_train.npy',S_list_total)
 #Validation set
-S_list_total_val = clean_set(events_testing)
+S_list_total_val = clean_set_eventIsDoc(events_testing)
 np.save('cleaned_tweets_val.npy',S_list_total_val)
 
 
 ######## END OF PART 1: TO COMMENT WHEN S_list_total IS SAVED #######
+
+
 '''
-
-
 ####### PART 2: CUT IN INTERVAL AND EXTRACT FEATURES #######
 
 # Parameters
@@ -302,8 +316,8 @@ N = 12 #reference number of intervals
 K = 1000
 
 #Train vectorizer
-S_list_total=np.load('cleaned_tweets_train.npy')
-vectorizer = TfidfVectorizer(max_features=K)
+S_list_total=np.load('output/cleaned_tweets_train.npy')
+vectorizer = TfidfVectorizer(max_features=K,stop_words='english')
 dummy = vectorizer.fit(S_list_total)
 print(vectorizer.vocabulary_)
 
@@ -312,20 +326,20 @@ del S_list_total # delete this variable to free memory
 
 #Extract features
 
-training_events_list = np.load('training_events_list.npy',allow_pickle=True) # load training event list
+training_events_list = np.load('output/training_events_list.npy',allow_pickle=True) # load training event list
 events_training = collections.OrderedDict(training_events_list) # convert it back to dictionary
 
-val_events_list = np.load('testing_events_list.npy',allow_pickle=True) # load training event list
+val_events_list = np.load('output/testing_events_list.npy',allow_pickle=True) # load training event list
 events_val = collections.OrderedDict(val_events_list) # convert it back to dictionary
 
 
 dataset = CQRI('../twitter.txt') # recreate it here when first part is commented
 
 featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_training, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
-np.save('featuresTensor_train.npy',featuresTensor)
+np.save('output/featuresTensor_train.npy',featuresTensor)
 
 featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_val, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
-np.save('featuresTensor_val.npy',featuresTensor)
+np.save('output/featuresTensor_val.npy',featuresTensor)
 
 
 #print(featuresTensor)
@@ -334,3 +348,4 @@ np.save('featuresTensor_val.npy',featuresTensor)
 #featuresTensor=np.load('featuresTensor.npy')
 
 ######## END OF PART 2 ########
+'''
