@@ -12,8 +12,8 @@ class RNN():
 
 
         # Batch normalization for input normalization
-        rnn = keras.layers.BatchNormalization(axis=-1)(input)
-
+        #rnn = keras.layers.BatchNormalization(axis=-1)(input)
+        rnn = input
 
         #rnn layers
         for i in range(layers):

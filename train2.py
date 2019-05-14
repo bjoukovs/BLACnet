@@ -2,18 +2,27 @@ import keras
 from model.rnn import RNN
 import numpy as np
 import utils.utils as u
+import sklearn.decomposition as skd
 
 #### DATA ####
 
-train = np.load('feature_extraction/featuresTensor_train_1000.npy')
-val = np.load('feature_extraction/featuresTensor_val_1000.npy')
+train = np.load('feature_extraction/output/featuresTensor_train.npy')
+val = np.load('feature_extraction/output/featuresTensor_val.npy')
 
-K = 1000
+K = 500
 N = 12
 
+#Getting all feature vectors for PCA
+#all_inputs_train = u.format_inputs_notime(train[:, 0])
+#pca = skd.SparsePCA(n_components=K)
+#pca.fit(all_inputs_train)
+pca = None
+
 # Extracting inputs (ndarray of shape (samples, timesteps, nfeatures)
-inputs_train = u.format_inputs(train[:, 0], N, K)
-inputs_val = u.format_inputs(val[:, 0], N, K)
+inputs_train = u.format_inputs(train[:, 0], N, K, pca)
+inputs_val = u.format_inputs(val[:, 0], N, K, pca)
+
+
 
 # Extracting labels (ndarray of size (samples, 1))
 labels_train = np.array(train[:, 1])
@@ -32,11 +41,11 @@ labels_val = keras.utils.to_categorical(labels_val, num_classes=2)
 
 # NOTE : THE INPUT DATA SHOULD BE NORMALIZED SOMEHOW
 
-
+a = train[0,0]
 
 #### MODEL ####
-BATCH_SIZE = 16
-NAME = "RNN5"
+BATCH_SIZE = 32
+NAME = "RNN19"
 
 model = RNN(feat_size=K, timesteps=N, layers=1, embedding_layer=False).get_model()
 print(model.summary())
@@ -55,7 +64,7 @@ tb = keras.callbacks.TensorBoard('logs/'+NAME)
 
 
 #### Train ####
-model.fit(x = inputs_train, y = labels_train, validation_data = (inputs_val, labels_val), batch_size=BATCH_SIZE, epochs=100, verbose=2, class_weight=class_weight, callbacks=[tb])
+model.fit(x = inputs_train, y = labels_train, validation_data = (inputs_val, labels_val), batch_size=BATCH_SIZE, epochs=500, verbose=2, class_weight=class_weight, callbacks=[tb])
 
 
 
