@@ -25,7 +25,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 from scipy.sparse import csr_matrix
 
-# Python utility tools 
+# Python utility tools
 import re # to remove URL's from tweets
 import datetime,time
 import string
