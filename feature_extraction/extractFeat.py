@@ -291,8 +291,11 @@ print("Number of events=",len(events))
 
 #Training set
 S_list_total = clean_set(events_training)
+np.save('cleaned_tweets_train.npy',S_list_total)
 #Validation set
 S_list_total_val = clean_set(events_testing)
+np.save('cleaned_tweets_val.npy',S_list_total_val)
+
 
 ######## END OF PART 1: TO COMMENT WHEN S_list_total IS SAVED #######
 '''

@@ -11,21 +11,23 @@ class RNN():
             input = keras.layers.Embedding(input_dim=(timesteps, feat_size), output_dim=(timesteps, embedding_size))(input)'''
 
 
-        rnn = input
+        # Batch normalization for input normalization
+        rnn = keras.layers.BatchNormalization(axis=-1)(input)
+
 
         #rnn layers
         for i in range(layers):
 
             return_sequences = True
-            if i==layers:
+            if i==layers-1:
                 return_sequences = False
 
             rnn = keras.layers.SimpleRNN(units=feat_size, activation='tanh', return_sequences=return_sequences)(rnn)
 
 
         #output
-        out = keras.layers.Dense(2)(rnn)
-        out = keras.layers.Activation('softmax')(rnn)
+        out = keras.layers.Dense(1)(rnn)
+        out = keras.layers.Activation('sigmoid')(out)
 
         #Model
         self.model = keras.models.Model(inputs=[input], outputs=[out])
