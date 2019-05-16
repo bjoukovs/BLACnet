@@ -45,7 +45,7 @@ a = train[0,0]
 
 #### MODEL ####
 BATCH_SIZE = 32
-NAME = "RNN22"
+NAME = "RNN23"
 
 model = RNN(feat_size=K, timesteps=N, layers=1, embedding_layer=False).get_model()
 print(model.summary())
@@ -67,6 +67,6 @@ tb = keras.callbacks.TensorBoard('logs/'+NAME)
 model.fit(x = inputs_train, y = labels_train, validation_data = (inputs_val, labels_val), batch_size=BATCH_SIZE, epochs=150, verbose=2, class_weight=None, callbacks=[tb], shuffle=True)
 
 
-model.evaluate(x = inputs_val, y = labels_val, batch_size=BATCH_SIZE)
+print(model.evaluate(x = inputs_val, y = labels_val, batch_size=BATCH_SIZE, verbose=2))
 
 

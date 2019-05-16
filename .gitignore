@@ -3,6 +3,7 @@
 
 #heavy feature extraction files
 feature_extraction/output/
+feature_extraction/output2/
 feature_extraction/preprocessor/
 checkpoints/
 logs/

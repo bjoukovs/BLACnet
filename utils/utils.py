@@ -47,13 +47,12 @@ def format_inputs_notime(inputs):
 
     dataset_length = len(inputs)
     vectors = []
+    labels = []
     for input in inputs:
 
-        sz = input.shape[1]
+        vectors.append(input[0].T)
+        labels.append(input[1])
 
-        for i in range(sz):
-            vectors.append(input[:,i].T)
-
-    return np.array(vectors)
+    return np.array(vectors), np.array(labels)
 
 

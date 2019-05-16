@@ -28,7 +28,7 @@ class RNN():
         #Batch normalization
         #out = keras.layers.BatchNormalization(axis=-1)(rnn)
 
-        out = keras.layers.Dropout(rate=0.6)(rnn)
+        out = keras.layers.Dropout(rate=0.5)(rnn)
 
         #output
         out = keras.layers.Dense(2, kernel_regularizer=keras.regularizers.l2(0.5))(out)

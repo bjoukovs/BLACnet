@@ -275,6 +275,42 @@ def cut_intervals_extract_features(dataset, events, vectorizer, N=12, K=5000):
     return featuresTensor
 
 
+def extractFeatures(dataset, events, vectorizer, K=5000):
+
+    counter = 0
+    featuresMatrix = []
+
+    for keyEvent in events:
+        counter += 1
+        print(counter)
+        if os.path.isfile('../dataset/rumdect/tweets/' + keyEvent + '.json'):  # check that the event file exists
+            dico = dataset.get_tweets('../dataset/rumdect/tweets/' + keyEvent + '.json')
+            ev = events[keyEvent]
+            label = ev[1]
+
+            S_list = []
+
+            for keyTweet in dico:  # iterates over the keys
+                date, text = dico[keyTweet]
+                # print(date)
+
+                text = clean_single_text(text, date)
+
+                if text is not None:
+                    S_list.append(text)
+
+
+            full_text = ' '.join(S_list)
+            vector = vectorizer.transform([full_text]).toarray()
+
+            featuresMatrix.append((vector, label))
+
+    return featuresMatrix
+
+
+
+
+
 '''
 ######## PART 1: getting dataset, splitting it and cleaning it #######
 
@@ -319,7 +355,7 @@ np.save('cleaned_tweets_val.npy',S_list_total_val)
 
 # Parameters
 N = 12 #reference number of intervals
-K = 1000
+K = 2500
 
 #Train vectorizer
 S_list_total=np.load('output/cleaned_tweets_train.npy')
@@ -340,11 +376,13 @@ events_val = collections.OrderedDict(val_events_list) # convert it back to dicti
 
 dataset = CQRI('../twitter.txt') # recreate it here when first part is commented
 
-featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_training, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
-np.save('output/featuresTensor_train.npy',featuresTensor)
+#featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_training, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
+featuresTensor = extractFeatures(dataset=dataset, events=events_training, vectorizer=vectorizer, K=K)
+np.save('output2/featuresTensor_train.npy',featuresTensor)
 
-featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_val, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
-np.save('output/featuresTensor_val.npy',featuresTensor)
+#featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_val, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
+featuresTensor = extractFeatures(dataset=dataset, events=events_val, vectorizer=vectorizer, K=K)
+np.save('output2/featuresTensor_val.npy',featuresTensor)
 
 
 #print(featuresTensor)
