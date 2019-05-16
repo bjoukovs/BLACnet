@@ -12,8 +12,8 @@ class RNN():
 
 
         # Batch normalization for input normalization
-        #rnn = keras.layers.BatchNormalization(axis=-1)(input)
-        rnn = input
+        rnn = keras.layers.BatchNormalization(axis=-1)(input)
+        #rnn = input
 
         #rnn layers
         for i in range(layers):
@@ -22,14 +22,17 @@ class RNN():
             if i==layers-1:
                 return_sequences = False
 
-            rnn = keras.layers.SimpleRNN(units=feat_size, activation='relu', return_sequences=return_sequences)(rnn)
+            rnn = keras.layers.SimpleRNN(units=32, activation='relu', return_sequences=return_sequences, kernel_regularizer=keras.regularizers.l2(0.5))(rnn)
 
 
         #Batch normalization
-        out = keras.layers.BatchNormalization(axis=-1)(rnn)
+        #out = keras.layers.BatchNormalization(axis=-1)(rnn)
+
+        out = keras.layers.Dropout(rate=0.6)(rnn)
 
         #output
-        out = keras.layers.Dense(2)(out)
+        out = keras.layers.Dense(2, kernel_regularizer=keras.regularizers.l2(0.5))(out)
+        #out = keras.layers.Dense(2)(out)
         out = keras.layers.Activation('softmax')(out)
 
         #Model

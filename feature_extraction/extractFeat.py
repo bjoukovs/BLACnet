@@ -37,6 +37,7 @@ from sacremoses import MosesTokenizer, MosesDetokenizer
 
 import collections # to sort the dictionary
 import operator
+import random
 
 
 ##TRAIN TF-IDF ON ALL TEXTS: DO IT ONE TIME AND THEN JUST LOAD FILE ##
@@ -154,7 +155,7 @@ def cut_intervals_extract_features(dataset, events, vectorizer, N=12, K=5000):
                 for i in range(0, len(S_list)):
                     S_list_sorted[i] = S_list[idx[i]]  # S_list is sorted in ascending order w.r.t the date values
 
-                dummy = vectorizer.fit(S_list_sorted) # learn the vocabulary on each event separately
+                #dummy = vectorizer.fit(S_list_sorted) # learn the vocabulary on each event separately
 
                 # Time interval
                 timeStart = date_list[0]
@@ -262,8 +263,8 @@ def cut_intervals_extract_features(dataset, events, vectorizer, N=12, K=5000):
                     interval = separator.join(max_interval[ii])
                     tmp = vectorizer.transform([interval])
                     vec = tmp.toarray()
-                    print(vec)
-                    vec = np.append(vec,np.zeros((1,K-vec.shape[1])))
+                    #print(vec)
+                    #vec = np.append(vec,np.zeros((1,K-vec.shape[1])))
                     featuresMat[:, ii] = vec
                 # print(featuresMat)
 
@@ -287,6 +288,7 @@ print(events)
 
 ## SPLIT DATASET IN TRAINING AND TESTING ##
 sorted_events_list = sorted(events.items(), key=lambda kv: kv[1])  # sort based on the key, to be able to split the dataset in a deterministic way
+random.shuffle(sorted_events_list)
 training_events_list = sorted_events_list[0:round(0.8*len(sorted_events_list))]
 testing_events_list = sorted_events_list[round(0.8*len(sorted_events_list))+1:]
 np.save('training_events_list.npy',training_events_list,allow_pickle=True)
@@ -317,12 +319,12 @@ np.save('cleaned_tweets_val.npy',S_list_total_val)
 
 # Parameters
 N = 12 #reference number of intervals
-K = 500
+K = 1000
 
 #Train vectorizer
-#S_list_total=np.load('output/cleaned_tweets_train.npy')
+S_list_total=np.load('output/cleaned_tweets_train.npy')
 vectorizer = TfidfVectorizer(max_features=K,stop_words='english')
-#dummy = vectorizer.fit(S_list_total)
+dummy = vectorizer.fit(S_list_total)
 #print(vectorizer.vocabulary_)
 #del S_list_total # delete this variable to free memory
 

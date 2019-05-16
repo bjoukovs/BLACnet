@@ -9,7 +9,7 @@ import sklearn.decomposition as skd
 train = np.load('feature_extraction/output/featuresTensor_train.npy')
 val = np.load('feature_extraction/output/featuresTensor_val.npy')
 
-K = 500
+K = 1000
 N = 12
 
 #Getting all feature vectors for PCA
@@ -45,7 +45,7 @@ a = train[0,0]
 
 #### MODEL ####
 BATCH_SIZE = 32
-NAME = "RNN19"
+NAME = "RNN22"
 
 model = RNN(feat_size=K, timesteps=N, layers=1, embedding_layer=False).get_model()
 print(model.summary())
@@ -53,7 +53,7 @@ print(model.summary())
 
 
 #### Optimizer ####
-optimizer = keras.optimizers.RMSprop()
+optimizer = keras.optimizers.RMSprop(lr=1e-4)
 
 model.compile(optimizer=optimizer, loss=keras.losses.categorical_crossentropy, metrics=[keras.metrics.categorical_accuracy, keras.metrics.categorical_crossentropy])
 
@@ -64,7 +64,9 @@ tb = keras.callbacks.TensorBoard('logs/'+NAME)
 
 
 #### Train ####
-model.fit(x = inputs_train, y = labels_train, validation_data = (inputs_val, labels_val), batch_size=BATCH_SIZE, epochs=500, verbose=2, class_weight=class_weight, callbacks=[tb])
+model.fit(x = inputs_train, y = labels_train, validation_data = (inputs_val, labels_val), batch_size=BATCH_SIZE, epochs=150, verbose=2, class_weight=None, callbacks=[tb], shuffle=True)
 
+
+model.evaluate(x = inputs_val, y = labels_val, batch_size=BATCH_SIZE)
 
 
