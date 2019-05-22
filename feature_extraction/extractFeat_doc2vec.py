@@ -38,38 +38,82 @@ from nltk.tokenize import word_tokenize
 from extractFeat import *
 
 
-
+# Main part
 # Parameters
 N = 12 #reference number of intervals
 K = 2500
+train_doc2vec(K) # do it once and then comment this line
+model= Doc2Vec.load("d2v.model")
 
-#Train vectorizer
-S_list_total=np.load('output/cleaned_tweets_train.npy') # each event is a document
-tagged_data = [TaggedDocument(words=word_tokenize(_d.lower()), tags=[str(i)]) for i, _d in enumerate(data)]
-max_epochs = 100
-vec_size = 20
-alpha = 0.025
 
-model = Doc2Vec(size=vec_size,
-                alpha=alpha,
-                min_alpha=0.00025,
-                min_count=1,
-                dm=1)
+def extractFeatures_doc2vec(dataset, events, vectorizer, K=5000):
+    '''
+    For the simple ANN model
+    '''
+    counter = 0
+    featuresMatrix = []
 
-model.build_vocab(tagged_data)
+    for keyEvent in events:
+        counter += 1
+        print(counter)
+        if os.path.isfile('../dataset/rumdect/tweets/' + keyEvent + '.json'):  # check that the event file exists
+            dico = dataset.get_tweets('../dataset/rumdect/tweets/' + keyEvent + '.json')
+            ev = events[keyEvent]
+            label = ev[1]
 
-for epoch in range(max_epochs):
-    print('iteration {0}'.format(epoch))
-    model.train(tagged_data,
-                total_examples=model.corpus_count,
-                epochs=model.iter)
-    # decrease the learning rate
-    model.alpha -= 0.0002
-    # fix the learning rate, no decay
-    model.min_alpha = model.alpha
+            S_list = []
 
-model.save("d2v.model")
-print("Model Saved")
+            for keyTweet in dico:  # iterates over the keys
+                date, text = dico[keyTweet]
+                # print(date)
+
+                text = clean_single_text(text, date)
+
+                if text is not None:
+                    S_list.append(text)
+
+
+            full_text = ' '.join(S_list)
+
+            test_data = word_tokenize(full_text.lower())
+            vector = model.infer_vector(test_data)
+            featuresMatrix.append((vector, label))
+
+    return featuresMatrix
+
+
+def train_doc2vec(K):
+    max_epochs = 100
+    vec_size = K
+    alpha = 0.025
+
+    S_list_total=np.load('output/cleaned_tweets_train.npy') # each event is a document
+    tagged_data = [TaggedDocument(words=word_tokenize(_d.lower()), tags=[str(i)]) for i, _d in enumerate(data)]
+
+    model = Doc2Vec(size=vec_size,
+                    alpha=alpha,
+                    min_alpha=0.00025,
+                    min_count=1,
+                    dm=1)
+
+    model.build_vocab(tagged_data)
+
+    for epoch in range(max_epochs):
+        print('iteration {0}'.format(epoch))
+        model.train(tagged_data,
+                    total_examples=model.corpus_count,
+                    epochs=model.iter)
+        # decrease the learning rate
+        model.alpha -= 0.0002
+        # fix the learning rate, no decay
+        model.min_alpha = model.alpha
+
+    model.save("d2v.model")
+    print("Model Saved")
+
+
+
+
 
 
 

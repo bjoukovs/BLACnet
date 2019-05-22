@@ -120,6 +120,9 @@ def clean_set_eventIsDoc(events):
 
 
 def cut_intervals_extract_features(dataset, events, vectorizer, N=12, K=5000):
+    '''
+    For the RNN model with variable size non-empty intervals
+    '''
     counter = 0
     featuresTensor = []
 
@@ -276,6 +279,9 @@ def cut_intervals_extract_features(dataset, events, vectorizer, N=12, K=5000):
 
 
 def extractFeatures(dataset, events, vectorizer, K=5000):
+    '''
+    For the simple ANN model
+    '''
 
     counter = 0
     featuresMatrix = []
