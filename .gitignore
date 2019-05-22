@@ -4,6 +4,7 @@
 #heavy feature extraction files
 feature_extraction/output/
 feature_extraction/output2/
+feature_extraction/output_rnn_constant/
 feature_extraction/preprocessor/
 checkpoints/
 logs/
@@ -131,3 +132,5 @@ feature_extraction/events/
 feature_extraction/cleaned_tweets.npy
 feature_extraction/testing_events_list.npy
 feature_extraction/training_events_list.npy
+feature_extraction/cleaned_tweets_train.npy
+feature_extraction/cleaned_tweets_test.npy

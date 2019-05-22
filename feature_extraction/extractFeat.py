@@ -370,25 +370,25 @@ def cutSameIntervals_extractFeatures(dataset, events, vectorizer, N=12, K=5000):
 
                 # Dividing in intervals of duration equal to timeStep, and finding the continuous super-interval, i.e. the longest serie of intervals without empty space
                 count_save = 0
-                while (True):
-                    # Dividing in intervals
-                    S_list_intervals = []  # list of sublists containing tweets belonging to the same interval (each sublist is one interval)
-                    n = 0  # global counter for the time steps
-                    i = 0  # counter within an interval
-                    timeUp = 0
-                    while timeUp < timeStart + totalTimeInterval:
-                        timeDown = timeStart + n * timeStep
-                        timeUp = timeDown + timeStep
 
-                        interval = []
-                        while i < len(date_list):
-                            if date_list[i] <= timeUp and date_list[i] >= timeDown:
-                                interval.append(S_list_sorted[i])
-                                i += 1
-                            else:
-                                break
-                        S_list_intervals.append(interval)
-                        n += 1
+                # Dividing in intervals
+                S_list_intervals = []  # list of sublists containing tweets belonging to the same interval (each sublist is one interval)
+                n = 0  # global counter for the time steps
+                i = 0  # counter within an interval
+                timeUp = 0
+                while timeUp < timeStart + totalTimeInterval:
+                    timeDown = timeStart + n * timeStep
+                    timeUp = timeDown + timeStep
+
+                    interval = []
+                    while i < len(date_list):
+                        if date_list[i] <= timeUp and date_list[i] >= timeDown:
+                            interval.append(S_list_sorted[i])
+                            i += 1
+                        else:
+                            break
+                    S_list_intervals.append(interval)
+                    n += 1
 
                 if len(S_list_intervals) != N:
                     print("ERROR: the number of intervals should be equal to N")
@@ -400,7 +400,7 @@ def cutSameIntervals_extractFeatures(dataset, events, vectorizer, N=12, K=5000):
                 for ii in range(0,N):
                     # featuresMat[:,ii] = tf_idf(max_interval[ii],True,K)   # to modify to take each interval separately
                     separator = ' '
-                    interval = separator.join(max_interval[ii])
+                    interval = separator.join(S_list_intervals[ii])
                     tmp = vectorizer.transform([interval])
                     vec = tmp.toarray()
                     #print(vec)
@@ -417,7 +417,7 @@ def cutSameIntervals_extractFeatures(dataset, events, vectorizer, N=12, K=5000):
 
 
 
-
+'''
 ######## PART 1: getting dataset, splitting it and cleaning it #######
 
 ## LOAD DATASET ##
@@ -455,8 +455,8 @@ np.save('cleaned_tweets_test.npy',S_list_total_val)
 
 ######## END OF PART 1: TO COMMENT WHEN S_list_total IS SAVED #######
 
+'''
 
-"""
 ####### PART 2: CUT IN INTERVAL AND EXTRACT FEATURES #######
 
 # Parameters
@@ -464,7 +464,7 @@ N = 12 #reference number of intervals
 K = 2500
 
 #Train vectorizer
-S_list_total=np.load('output/cleaned_tweets_train.npy')
+S_list_total=np.load('cleaned_tweets_train.npy')
 vectorizer = TfidfVectorizer(max_features=K,stop_words='english')
 dummy = vectorizer.fit(S_list_total)
 #print(vectorizer.vocabulary_)
@@ -473,22 +473,22 @@ dummy = vectorizer.fit(S_list_total)
 
 #Extract features
 
-training_events_list = np.load('output/training_events_list.npy',allow_pickle=True) # load training event list
+training_events_list = np.load('training_events_list.npy',allow_pickle=True) # load training event list
 events_training = collections.OrderedDict(training_events_list) # convert it back to dictionary
 
-val_events_list = np.load('output/testing_events_list.npy',allow_pickle=True) # load training event list
+val_events_list = np.load('testing_events_list.npy',allow_pickle=True) # load training event list
 events_val = collections.OrderedDict(val_events_list) # convert it back to dictionary
 
 
 dataset = CQRI('../twitter.txt') # recreate it here when first part is commented
 
 #featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_training, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
-featuresTensor = extractFeatures(dataset=dataset, events=events_training, vectorizer=vectorizer, K=K)
-np.save('output2/featuresTensor_train.npy',featuresTensor)
+featuresTensor = cutSameIntervals_extractFeatures(dataset=dataset, events=events_training, vectorizer=vectorizer, K=K)
+np.save('output_rnn_constant/featuresTensor_train.npy',featuresTensor)
 
 #featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_val, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
-featuresTensor = extractFeatures(dataset=dataset, events=events_val, vectorizer=vectorizer, K=K)
-np.save('output2/featuresTensor_test.npy',featuresTensor)
+featuresTensor = cutSameIntervals_extractFeatures(dataset=dataset, events=events_val, vectorizer=vectorizer, K=K)
+np.save('output_rnn_constant/featuresTensor_test.npy',featuresTensor)
 
 
 #print(featuresTensor)
@@ -497,4 +497,3 @@ np.save('output2/featuresTensor_test.npy',featuresTensor)
 #featuresTensor=np.load('featuresTensor.npy')
 
 ######## END OF PART 2 ########
-"""
