@@ -49,8 +49,9 @@ events = dataset.get_dict()
 
 ## SPLIT DATASET IN TRAINING AND TESTING ##
 sorted_events_list = sorted(events.items(), key=lambda kv: kv[1])  # sort based on the key, to be able to split the dataset in a deterministic way
-training_events_list = sorted_events_list[0:round(0.8*len(sorted_events_list))]
-testing_events_list = sorted_events_list[round(0.8*len(sorted_events_list))+1:]
+random.shuffle(sorted_events_list)
+training_events_list = sorted_events_list[0:round(0.80*len(sorted_events_list))]
+testing_events_list = sorted_events_list[round(0.80*len(sorted_events_list))+1:]
 np.save('training_events_list.npy',training_events_list,allow_pickle=True)
 np.save('testing_events_list.npy',testing_events_list,allow_pickle=True)
 events_training = collections.OrderedDict(training_events_list)
