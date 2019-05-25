@@ -35,16 +35,9 @@ import random
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from nltk.tokenize import word_tokenize
 
-from extractFeat import *
+#from gistfile1 import read_npy_chunk,read_npy_chunk_demo_unsafe
 
-
-# Main part
-# Parameters
-N = 12 #reference number of intervals
-K = 2500
-train_doc2vec(K) # do it once and then comment this line
-model= Doc2Vec.load("d2v.model")
-
+#from extractFeat import *
 
 def extractFeatures_doc2vec(dataset, events, vectorizer, K=5000):
     '''
@@ -87,7 +80,8 @@ def train_doc2vec(K):
     vec_size = K
     alpha = 0.025
 
-    S_list_total=np.load('output/cleaned_tweets_train.npy') # each event is a document
+    S_list_total=np.load('cleaned_tweets_train.npy',mmap_mode='r') # each event is a document
+    #S_list_total = read_npy_chunk('cleaned_tweets_train.npy',1,100)
     tagged_data = [TaggedDocument(words=word_tokenize(_d.lower()), tags=[str(i)]) for i, _d in enumerate(data)]
 
     model = Doc2Vec(size=vec_size,
@@ -99,7 +93,8 @@ def train_doc2vec(K):
     model.build_vocab(tagged_data)
 
     for epoch in range(max_epochs):
-        print('iteration {0}'.format(epoch))
+        #print('iteration {0}'.format(epoch))
+        print("Doc2vec training epoch: ",epoch)
         model.train(tagged_data,
                     total_examples=model.corpus_count,
                     epochs=model.iter)
@@ -113,25 +108,29 @@ def train_doc2vec(K):
 
 
 
+# Main part
+# Parameters
+N = 12 #reference number of intervals
+K = 2500
+print("TEST")
+train_doc2vec(K) # do it once and then comment this line
 
 
-
-
+"""
+model= Doc2Vec.load("d2v.model")
 #Extract features
-
-training_events_list = np.load('output/training_events_list.npy',allow_pickle=True) # load training event list
+training_events_list = np.load('training_events_list.npy',allow_pickle=True) # load training event list
 events_training = collections.OrderedDict(training_events_list) # convert it back to dictionary
-
-val_events_list = np.load('output/testing_events_list.npy',allow_pickle=True) # load training event list
+val_events_list = np.load('testing_events_list.npy',allow_pickle=True) # load training event list
 events_val = collections.OrderedDict(val_events_list) # convert it back to dictionary
-
 
 dataset = CQRI('../twitter.txt') # recreate it here when first part is commented
 
-#featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_training, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
-featuresTensor =
+featuresTensor = extractFeatures_doc2vec(dataset, events_training, vectorizer, K=5000)
 np.save('output2/featuresTensor_train.npy',featuresTensor)
-
-#featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_val, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
-featuresTensor =
+featuresTensor = extractFeatures_doc2vec(dataset, events_val, vectorizer, K=5000)
 np.save('output2/featuresTensor_test.npy',featuresTensor)
+"""
+
+
+

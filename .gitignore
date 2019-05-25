@@ -129,5 +129,7 @@ dataset/rumdect/*
 
 feature_extraction/events/
 feature_extraction/cleaned_tweets.npy
+feature_extraction/cleaned_tweets_test.npy
+feature_extraction/cleaned_tweets_train.npy
 feature_extraction/testing_events_list.npy
 feature_extraction/training_events_list.npy
