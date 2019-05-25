@@ -2,6 +2,7 @@ import keras
 import numpy as np
 import utils.utils as u
 import sklearn.decomposition as skd
+import scipy.io as sio
 
 def train_k_fold(train_path, test_path, **kwargs):
 
@@ -40,6 +41,13 @@ def train_k_fold(train_path, test_path, **kwargs):
     inputs_test, labels_test = u.format_inputs_notime(test)
     inputs_test = np.squeeze(inputs_test, axis=-1)
 
+    # Data normalization
+    train_x_mean = np.mean(inputs_train, axis=0)
+    train_x_std = np.std(inputs_train, axis=0)
+
+    inputs_train = (inputs_train - train_x_mean)/train_x_std
+    inputs_test = (inputs_test - train_x_mean)/train_x_std
+
 
     print(len(np.where(labels_train==1)[0]))
     print(len(np.where(labels_train==0)[0]))
@@ -67,7 +75,7 @@ def train_k_fold(train_path, test_path, **kwargs):
 
     def get_model(embedding_size=32, dropout_rate=0.5, hidden_layers=1, regularization=0.1):
         model = keras.Sequential()
-        model.add(keras.layers.BatchNormalization())
+        #model.add(keras.layers.BatchNormalization())
 
         for i in range(hidden_layers):
             model.add(keras.layers.Dense(embedding_size, kernel_regularizer=keras.regularizers.l2(regularization)))
@@ -138,11 +146,29 @@ if __name__ == '__main__':
     train_path = 'feature_extraction/output2/featuresTensor_train.npy'
     test_path = 'feature_extraction/output2/featuresTensor_val.npy'
 
-    NAME = 'test5'
+    NAME = 'test_ANN_embedding'
     LR = 5e-4
-    EMBEDDING = 16
+    EMBEDDING = [16, 20, 24, 28, 32, 40, 48, 56, 64]
 
-    val = train_k_fold(train_path, test_path, name=NAME, epochs=100, lr=LR, embedding_size=EMBEDDING)
-    print(val)
+    Embedding_np = np.array(EMBEDDING)
+    val_score = np.zeros(9)
+    test_score = np.zeros(9)
+
+    idx = 0
+    for e in EMBEDDING:
+        val = train_k_fold(train_path, test_path, name=NAME+str(idx), epochs=100, lr=LR, embedding_size=e)
+        print(val)
+
+        val_score[idx] = val[0]
+        test_score[idx] = val[1]
+
+        idx += 1
+
+    print(val_score)
+    print(test_score)
+
+    dict = {'embedding':Embedding_np, 'val':val_score, 'test':test_score}
+
+    sio.savemat('Results/ANN/EmbeddingSize.mat', dict)
 
 
