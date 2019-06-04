@@ -18,7 +18,8 @@ def train_k_fold(train_path, test_path, **kwargs):
             'name':'myNN',
             'batch_size':32,
             'epochs':200,
-            'model_type':None
+            'model_type':None,
+            'embedding_layer':True
             }
 
     if kwargs is not None:
@@ -49,8 +50,8 @@ def train_k_fold(train_path, test_path, **kwargs):
 
 
     # Data normalization
-    train_x_mean = np.mean(inputs_train, axis=0)
-    train_x_std = np.std(inputs_train, axis=0)
+    train_x_mean = np.mean(inputs_train, axis=(0,1))
+    train_x_std = np.std(inputs_train, axis=(0,1))
 
     #inputs_train = (inputs_train - train_x_mean)/train_x_std
     #inputs_test = (inputs_test - train_x_mean)/train_x_std
@@ -101,7 +102,9 @@ def train_k_fold(train_path, test_path, **kwargs):
         model = model_type(embedding_size=opts['embedding_size'],
                           hidden_layers=opts['hidden_layers'],
                           dropout_rate=opts['dropout_rate'],
-                          regularization=opts['regularization']).get_model()
+                          regularization=opts['regularization'],
+                          embedding_layer=opts['embedding_layer'])
+        model = model.get_model()
 
         optimizer = keras.optimizers.RMSprop(lr=opts['lr'])
 
@@ -112,10 +115,11 @@ def train_k_fold(train_path, test_path, **kwargs):
         checkpoint = keras.callbacks.ModelCheckpoint('checkpoints/temp.hdf5', monitor='val_categorical_accuracy', save_best_only=True)
         tb = keras.callbacks.TensorBoard('logs/' + opts['name']+ '/fold_'+str(fold))
         # lrshedule = keras.callbacks.ReduceLROnPlateau(monitor='val_categorical_accuracy', factor=0.5, patience=5, min_lr=5e-7, verbose=1)
+        es = keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=20)
 
         #### Train ####
         model.fit(x=cut_train_x, y=cut_train_y, validation_data=(cut_val_x, cut_val_y), batch_size=opts['batch_size'],
-                  epochs=opts['epochs'], verbose=2, callbacks=[tb, checkpoint], shuffle=True)
+                  epochs=opts['epochs'], verbose=2, callbacks=[tb, checkpoint, es], shuffle=True)
 
         model.load_weights('checkpoints/temp.hdf5')
         training_scores.append(model.evaluate(cut_train_x, cut_train_y)[1])
@@ -131,28 +135,35 @@ def train_k_fold(train_path, test_path, **kwargs):
 
 if __name__ == '__main__':
 
-    train_path = 'feature_extraction/output_rnn_variable/featuresTensor_train.npy'
-    test_path = 'feature_extraction/output_rnn_variable/featuresTensor_test.npy'
+    train_path = 'feature_extraction/output_doc2vec_rnn_variable/featuresTensor_train_2500.npy'
+    test_path = 'feature_extraction/output_doc2vec_rnn_variable/featuresTensor_test_2500.npy'
 
-    NAME = 'test_GRU_variable'
-    LR = 1e-4
-    EMBEDDING = 32
-    REGULARIZATION = 0.05
+    NAME = 'test_GRU2_DOC2VEC_variable_'
+    LR = 5e-5
+    EMBEDDING = 40
+    EMBEDDING_LAYER = True
+    REGULARIZATION = 0.01
     DROPOUT = 0.4
-    MODEL = rnn.GRURNN
+    MODEL = rnn.GRU2RNN
 
-    val = train_k_fold(train_path, test_path, name=NAME, epochs=50, lr=LR, embedding_size=EMBEDDING,
-                       hidden_layers=2, regularization=REGULARIZATION, dropout_rate=DROPOUT, model_type=MODEL)
+    val = train_k_fold(train_path, test_path, name=NAME, epochs=200, lr=LR, embedding_size=EMBEDDING,
+                   hidden_layers=2, regularization=REGULARIZATION, dropout_rate=DROPOUT, model_type=MODEL, embedding_layer=EMBEDDING_LAYER)
     print(val)
 
-    '''idx = 0
-    for d in reg:
-        val = train_k_fold(train_path, test_path, name=NAME+str(idx), epochs=300, lr=LR, embedding_size=40, hidden_layers=1, regularization=1.0)
+    embedding = [20, 40, 80]
+
+    exit()
+
+    train_score, val_score, test_score = [], [], []
+
+    idx = 0
+    for d in embedding:
+        val = train_k_fold(train_path, test_path, name=NAME+str(idx), epochs=200, lr=LR, embedding_size=d, hidden_layers=1, regularization=REGULARIZATION, dropout_rate=DROPOUT, model_type=MODEL)
         print(val)
 
-        train_score[idx] = val[0]
-        val_score[idx] = val[1]
-        test_score[idx] = val[2]
+        train_score.append(val[0])
+        val_score.append(val[1])
+        test_score.append(val[2])
 
         idx += 1
 
@@ -160,8 +171,8 @@ if __name__ == '__main__':
     print(val_score)
     print(test_score)
 
-    dict = {'dropout':reg_np, 'train':train_score, 'val':val_score, 'test':test_score}
+    dict = {'embedding':np.array(embedding), 'train':np.array(train_score), 'val':np.array(val_score), 'test':np.array(test_score)}
 
-    sio.savemat('Results/ANN/Regularization.mat', dict)'''
+    sio.savemat('Results/RNN/GRU2_Embedding.mat', dict)
 
 

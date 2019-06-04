@@ -1,14 +1,19 @@
-data = load('ANN/Dropout.mat')
+data = load('RNN/GRU2_Embedding.mat')
 
-embedding = data.dropout;
+embedding = data.embedding;
 train = data.train
 val = data.val;
 test = data.test;
 
 
-semilogx(embedding, train)
+plot(embedding, train)
 hold on
-semilogx(embedding, val)
-semilogx(embedding, test)
+plot(embedding, val)
+plot(embedding, test)
 
 legend('Train acc', 'Val acc', 'Test acc')
+
+
+test = test';
+train = train';
+val = val';
