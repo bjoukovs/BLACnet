@@ -5,6 +5,10 @@
 feature_extraction/output/
 feature_extraction/output2/
 feature_extraction/preprocessor/
+feature_extraction/output_rnn_constant/
+feature_extraction/output_rnn_variable/
+feature_extraction/output_doc2vec_ann/
+feature_extraction/d2v.model
 checkpoints/
 logs/
 doc2vec/hidden/
