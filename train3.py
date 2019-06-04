@@ -36,10 +36,10 @@ def train_k_fold(train_path, test_path, **kwargs):
     #Getting all feature vectors
 
     inputs_train, labels_train = u.format_inputs_notime(train)
-    inputs_train = np.squeeze(inputs_train, axis=-1)
+    #inputs_train = np.squeeze(inputs_train, axis=-1)
 
     inputs_test, labels_test = u.format_inputs_notime(test)
-    inputs_test = np.squeeze(inputs_test, axis=-1)
+    #inputs_test = np.squeeze(inputs_test, axis=-1)
 
     # Data normalization
     train_x_mean = np.mean(inputs_train, axis=0)
@@ -75,7 +75,6 @@ def train_k_fold(train_path, test_path, **kwargs):
 
     def get_model(embedding_size=32, dropout_rate=0.5, hidden_layers=1, regularization=0.1):
         model = keras.Sequential()
-        #model.add(keras.layers.BatchNormalization())
 
         for i in range(hidden_layers):
             model.add(keras.layers.Dense(embedding_size, kernel_regularizer=keras.regularizers.l2(regularization)))
@@ -131,44 +130,49 @@ def train_k_fold(train_path, test_path, **kwargs):
                   epochs=opts['epochs'], verbose=2, callbacks=[tb, checkpoint], shuffle=True)
 
         model.load_weights('checkpoints/temp.hdf5')
+        training_scores.append(model.evaluate(cut_train_x, cut_train_y)[1])
         validation_scores.append(model.evaluate(cut_val_x, cut_val_y)[1])
         test_scores.append(model.evaluate(inputs_test, labels_test)[1])
 
 
     best_fold = np.argmax(validation_scores)
 
-    return(validation_scores[best_fold], test_scores[best_fold])
+    return(training_scores[best_fold], validation_scores[best_fold], test_scores[best_fold])
 
 
 
 if __name__ == '__main__':
 
-    train_path = 'feature_extraction/output2/featuresTensor_train.npy'
-    test_path = 'feature_extraction/output2/featuresTensor_val.npy'
+    train_path = 'feature_extraction/output_doc2vec_ann/featuresTensor_train.npy'
+    test_path = 'feature_extraction/output_doc2vec_ann/featuresTensor_test.npy'
 
-    NAME = 'test_ANN_embedding'
-    LR = 5e-4
-    EMBEDDING = [16, 20, 24, 28, 32, 40, 48, 56, 64]
+    NAME = 'test_ANN_doc2vec_8'
+    LR = 1e-4
+    EMBEDDING = 32
+    REGULARIZATION = 0.05
+    DROPOUT = 0.4
 
-    Embedding_np = np.array(EMBEDDING)
-    val_score = np.zeros(9)
-    test_score = np.zeros(9)
+    val = train_k_fold(train_path, test_path, name=NAME, epochs=500, lr=LR, embedding_size=EMBEDDING,
+                       hidden_layers=2, regularization=REGULARIZATION, dropout_rate=DROPOUT)
+    print(val)
 
-    idx = 0
-    for e in EMBEDDING:
-        val = train_k_fold(train_path, test_path, name=NAME+str(idx), epochs=100, lr=LR, embedding_size=e)
+    '''idx = 0
+    for d in reg:
+        val = train_k_fold(train_path, test_path, name=NAME+str(idx), epochs=300, lr=LR, embedding_size=40, hidden_layers=1, regularization=1.0)
         print(val)
 
-        val_score[idx] = val[0]
-        test_score[idx] = val[1]
+        train_score[idx] = val[0]
+        val_score[idx] = val[1]
+        test_score[idx] = val[2]
 
         idx += 1
 
+    print(train_score)
     print(val_score)
     print(test_score)
 
-    dict = {'embedding':Embedding_np, 'val':val_score, 'test':test_score}
+    dict = {'dropout':reg_np, 'train':train_score, 'val':val_score, 'test':test_score}
 
-    sio.savemat('Results/ANN/EmbeddingSize.mat', dict)
+    sio.savemat('Results/ANN/Regularization.mat', dict)'''
 
 

@@ -37,7 +37,7 @@ from nltk.tokenize import word_tokenize
 
 #from gistfile1 import read_npy_chunk,read_npy_chunk_demo_unsafe
 
-#from extractFeat import *
+from feature_extraction.extractFeat import clean_single_text
 
 def extractFeatures_doc2vec(dataset, events, vectorizer, K=5000):
     '''
@@ -80,9 +80,9 @@ def train_doc2vec(K):
     vec_size = K
     alpha = 0.025
 
-    S_list_total=np.load('cleaned_tweets_train.npy',mmap_mode='r') # each event is a document
+    S_list_total=np.load('output_rnn_constant/cleaned_tweets_train.npy',mmap_mode='r') # each event is a document
     #S_list_total = read_npy_chunk('cleaned_tweets_train.npy',1,100)
-    tagged_data = [TaggedDocument(words=word_tokenize(_d.lower()), tags=[str(i)]) for i, _d in enumerate(data)]
+    tagged_data = [TaggedDocument(words=word_tokenize(_d.lower()), tags=[str(i)]) for i, _d in enumerate(S_list_total)]
 
     model = Doc2Vec(size=vec_size,
                     alpha=alpha,
@@ -110,13 +110,13 @@ def train_doc2vec(K):
 
 # Main part
 # Parameters
-N = 12 #reference number of intervals
-K = 2500
+'''N = 12 #reference number of intervals
+K = 256
 print("TEST")
 train_doc2vec(K) # do it once and then comment this line
+'''
 
 
-"""
 model= Doc2Vec.load("d2v.model")
 #Extract features
 training_events_list = np.load('training_events_list.npy',allow_pickle=True) # load training event list
@@ -126,11 +126,10 @@ events_val = collections.OrderedDict(val_events_list) # convert it back to dicti
 
 dataset = CQRI('../twitter.txt') # recreate it here when first part is commented
 
-featuresTensor = extractFeatures_doc2vec(dataset, events_training, vectorizer, K=5000)
-np.save('output2/featuresTensor_train.npy',featuresTensor)
-featuresTensor = extractFeatures_doc2vec(dataset, events_val, vectorizer, K=5000)
-np.save('output2/featuresTensor_test.npy',featuresTensor)
-"""
+featuresTensor = extractFeatures_doc2vec(dataset, events_training, model, K=256)
+np.save('output_doc2vec_ann/featuresTensor_train.npy',featuresTensor)
+featuresTensor = extractFeatures_doc2vec(dataset, events_val, model, K=256)
+np.save('output_doc2vec_ann/featuresTensor_test.npy',featuresTensor)
 
 
 

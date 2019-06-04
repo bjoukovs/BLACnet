@@ -44,15 +44,16 @@ class RNN():
 
 
 class BasicRNN():
-    def __init__(self, embedding_size=100):
+    def __init__(self, embedding_size=100, **kwargs):
         self.model = keras.Sequential()
 
+        self.model.add(keras.layers.BatchNormalization())
         # RNN
-        self.model.add(keras.layers.SimpleRNN(units=embedding_size, activation='tanh', kernel_regularizer=keras.regularizers.l2(0.5)))
+        self.model.add(keras.layers.SimpleRNN(units=embedding_size, activation='relu', kernel_regularizer=keras.regularizers.l2(1)))
         self.model.add(keras.layers.Dropout(rate=0.5))
 
         #output
-        self.model.add(keras.layers.Dense(2, kernel_regularizer=keras.regularizers.l2(0.5)))
+        self.model.add(keras.layers.Dense(2, kernel_regularizer=keras.regularizers.l2(1)))
         self.model.add(keras.layers.Activation('softmax'))
 
 
@@ -60,20 +61,22 @@ class BasicRNN():
         return self.model
 
 class GRURNN():
-    def __init__(self, embedding_layer=True, embedding_size=100):
+    def __init__(self, embedding_layer=True, embedding_size=100, **kwargs):
         self.model = keras.Sequential()
+
+        self.model.add(keras.layers.BatchNormalization())
 
         #input layer
         if embedding_layer:
-            self.model.add(keras.layers.Dense(units=embedding_size, kernel_regularizer=keras.regularizers.l2(0.5)))
+            self.model.add(keras.layers.Dense(units=embedding_size, kernel_regularizer=keras.regularizers.l2(0.1)))
             self.model.add(keras.layers.Activation('relu'))
 
         # RNN
-        self.model.add(keras.layers.GRU(units=embedding_size, activation='tanh', kernel_regularizer=keras.regularizers.l2(0.5)))
+        self.model.add(keras.layers.GRU(units=embedding_size, activation='tanh', kernel_regularizer=keras.regularizers.l2(0.1)))
         self.model.add(keras.layers.Dropout(rate=0.5))
 
         #output
-        self.model.add(keras.layers.Dense(2, kernel_regularizer=keras.regularizers.l2(0.5)))
+        self.model.add(keras.layers.Dense(2, kernel_regularizer=keras.regularizers.l2(0.1)))
         self.model.add(keras.layers.Activation('softmax'))
 
 

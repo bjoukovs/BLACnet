@@ -416,84 +416,84 @@ def cutSameIntervals_extractFeatures(dataset, events, vectorizer, N=12, K=5000):
 
 
 
+if __name__ == "__main__":
+    '''
+    ######## PART 1: getting dataset, splitting it and cleaning it #######
+    
+    ## LOAD DATASET ##
+    # Extract events ID
+    dataset = CQRI('../twitter.txt')
+    events = dataset.get_dict()   # start Jupyter with the command line: --NotebookApp.iopub_data_rate_limit=10000000000
+                                  # for ex.: ipython3 notebook --NotebookApp.iopub_data_rate_limit=10000000000
+    
+    print(events)
+    
+    ## SPLIT DATASET IN TRAINING AND TESTING ##
+    sorted_events_list = sorted(events.items(), key=lambda kv: kv[1])  # sort based on the key, to be able to split the dataset in a deterministic way
+    random.shuffle(sorted_events_list)
+    training_events_list = sorted_events_list[0:round(0.85*len(sorted_events_list))]
+    testing_events_list = sorted_events_list[round(0.85*len(sorted_events_list))+1:]
+    np.save('training_events_list.npy',training_events_list,allow_pickle=True)
+    np.save('testing_events_list.npy',testing_events_list,allow_pickle=True)
+    events_training = collections.OrderedDict(training_events_list)
+    events_testing = collections.OrderedDict(testing_events_list)
+    
+    # Training on the whole tweets dataset to learn the vocabulary
+    nbrEvents = 0
+    S_list_total = []
+    S_list_total_val = []
+    print("Number of events=",len(events))
+    
+    
+    #(Training + Validation) set
+    S_list_total = clean_set_eventIsDoc(events_training)
+    np.save('cleaned_tweets_train.npy',S_list_total)
+    #Testing set
+    S_list_total_val = clean_set_eventIsDoc(events_testing)
+    np.save('cleaned_tweets_test.npy',S_list_total_val)
+    
+    
+    ######## END OF PART 1: TO COMMENT WHEN S_list_total IS SAVED #######
+    
+    '''
 
-'''
-######## PART 1: getting dataset, splitting it and cleaning it #######
+    ####### PART 2: CUT IN INTERVAL AND EXTRACT FEATURES #######
 
-## LOAD DATASET ##
-# Extract events ID
-dataset = CQRI('../twitter.txt')
-events = dataset.get_dict()   # start Jupyter with the command line: --NotebookApp.iopub_data_rate_limit=10000000000
-                              # for ex.: ipython3 notebook --NotebookApp.iopub_data_rate_limit=10000000000
+    # Parameters
+    N = 12 #reference number of intervals
+    K = 2500
 
-print(events)
-
-## SPLIT DATASET IN TRAINING AND TESTING ##
-sorted_events_list = sorted(events.items(), key=lambda kv: kv[1])  # sort based on the key, to be able to split the dataset in a deterministic way
-random.shuffle(sorted_events_list)
-training_events_list = sorted_events_list[0:round(0.85*len(sorted_events_list))]
-testing_events_list = sorted_events_list[round(0.85*len(sorted_events_list))+1:]
-np.save('training_events_list.npy',training_events_list,allow_pickle=True)
-np.save('testing_events_list.npy',testing_events_list,allow_pickle=True)
-events_training = collections.OrderedDict(training_events_list)
-events_testing = collections.OrderedDict(testing_events_list)
-
-# Training on the whole tweets dataset to learn the vocabulary
-nbrEvents = 0
-S_list_total = []
-S_list_total_val = []
-print("Number of events=",len(events))
-
-
-#(Training + Validation) set
-S_list_total = clean_set_eventIsDoc(events_training)
-np.save('cleaned_tweets_train.npy',S_list_total)
-#Testing set
-S_list_total_val = clean_set_eventIsDoc(events_testing)
-np.save('cleaned_tweets_test.npy',S_list_total_val)
-
-
-######## END OF PART 1: TO COMMENT WHEN S_list_total IS SAVED #######
-
-'''
-
-####### PART 2: CUT IN INTERVAL AND EXTRACT FEATURES #######
-
-# Parameters
-N = 12 #reference number of intervals
-K = 2500
-
-#Train vectorizer
-S_list_total=np.load('cleaned_tweets_train.npy')
-vectorizer = TfidfVectorizer(max_features=K,stop_words='english')
-dummy = vectorizer.fit(S_list_total)
-#print(vectorizer.vocabulary_)
-#del S_list_total # delete this variable to free memory
-
-
-#Extract features
-
-training_events_list = np.load('training_events_list.npy',allow_pickle=True) # load training event list
-events_training = collections.OrderedDict(training_events_list) # convert it back to dictionary
-
-val_events_list = np.load('testing_events_list.npy',allow_pickle=True) # load training event list
-events_val = collections.OrderedDict(val_events_list) # convert it back to dictionary
+    #Train vectorizer
+    S_list_total=np.load('output_rnn_constant/cleaned_tweets_train.npy')
+    vectorizer = TfidfVectorizer(max_features=K,stop_words='english')
+    dummy = vectorizer.fit(S_list_total)
+    #print(vectorizer.vocabulary_)
+    #del S_list_total # delete this variable to free memory
 
 
-dataset = CQRI('../twitter.txt') # recreate it here when first part is commented
+    #Extract features
 
-#featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_training, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
-featuresTensor = cutSameIntervals_extractFeatures(dataset=dataset, events=events_training, vectorizer=vectorizer, K=K)
-np.save('output_rnn_constant/featuresTensor_train.npy',featuresTensor)
+    training_events_list = np.load('training_events_list.npy',allow_pickle=True) # load training event list
+    events_training = collections.OrderedDict(training_events_list) # convert it back to dictionary
 
-#featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_val, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
-featuresTensor = cutSameIntervals_extractFeatures(dataset=dataset, events=events_val, vectorizer=vectorizer, K=K)
-np.save('output_rnn_constant/featuresTensor_test.npy',featuresTensor)
+    val_events_list = np.load('testing_events_list.npy',allow_pickle=True) # load training event list
+    events_val = collections.OrderedDict(val_events_list) # convert it back to dictionary
 
 
-#print(featuresTensor)
+    dataset = CQRI('../twitter.txt') # recreate it here when first part is commented
+
+    featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_training, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
+    #featuresTensor = cutSameIntervals_extractFeatures(dataset=dataset, events=events_training, vectorizer=vectorizer, K=K)
+    np.save('output_rnn_variable/featuresTensor_train.npy',featuresTensor)
+
+    featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_val, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
+    #featuresTensor = cutSameIntervals_extractFeatures(dataset=dataset, events=events_val, vectorizer=vectorizer, K=K)
+    np.save('output_rnn_variable/featuresTensor_test.npy',featuresTensor)
 
 
-#featuresTensor=np.load('featuresTensor.npy')
+    #print(featuresTensor)
 
-######## END OF PART 2 ########
+
+    #featuresTensor=np.load('featuresTensor.npy')
+
+    ######## END OF PART 2 ########
