@@ -2,23 +2,15 @@
 #Append path
 import sys
 sys.path.append('../dataset')
-#sys.path.append('../tweet_cleaning')
 sys.path.append('..')
 sys.path.append('output/')
 
 # Import OS
 import os
 
-# Librairies for preprocessing the tweets
-#import io
-#import unittest
-
 # CQRI to get tweets
 from QCRI import CQRI
 import preprocessor as p
-
-
-
 
 # Librairies for computations and ML
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -29,24 +21,24 @@ from scipy.sparse import csr_matrix
 import re # to remove URL's from tweets
 import datetime,time
 import string
+import collections # to sort the dictionary
+import operator
+import random
+
+# Natural language processing kit
 import nltk
 from nltk.stem import PorterStemmer
 #from nltk.tokenize.moses import MosesDetokenizer
 from nltk.tokenize import word_tokenize
 from sacremoses import MosesTokenizer, MosesDetokenizer
 
-import collections # to sort the dictionary
-import operator
-import random
+# Gensim for doc2vec
+from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 
-
-##TRAIN TF-IDF ON ALL TEXTS: DO IT ONE TIME AND THEN JUST LOAD FILE ##
-
+# Parameters
 p.set_options(p.OPT.URL, p.OPT.HASHTAG, p.OPT.MENTION, p.OPT.EMOJI, p.OPT.SMILEY)
-#For stemming
-porter = PorterStemmer()
-#Detokenization
-detokenizer=MosesDetokenizer()
+porter = PorterStemmer() # stemming
+detokenizer=MosesDetokenizer() #detokenization
 
 
 def clean_single_text(text, date):
@@ -66,7 +58,7 @@ def clean_single_text(text, date):
 
 
 
-def clean_event(keyEvent):
+def clean_event(keyEvent,dataset):
 
     output = None
 
@@ -89,12 +81,12 @@ def clean_event(keyEvent):
     return output
 
 
-def clean_set_tweetIsDoc(events):
+def clean_set_tweetIsDoc(events,dataset):
     counter = 0
     total_list = []
     for keyEvent in events:
 
-        partial_list = clean_event(keyEvent)
+        partial_list = clean_event(keyEvent,dataset)
         if partial_list is not None:
             total_list.extend(partial_list)
 
@@ -103,13 +95,13 @@ def clean_set_tweetIsDoc(events):
 
     return total_list
 
-def clean_set_eventIsDoc(events):
+def clean_set_eventIsDoc(events,dataset):
     separator = ' '
     total_list = []
     counter = 0
     for keyEvent in events:
 
-        partial_list = clean_event(keyEvent)
+        partial_list = clean_event(keyEvent,dataset)
         if partial_list is not None:
             partial_list = separator.join(partial_list)
             total_list.append(partial_list)
@@ -121,7 +113,8 @@ def clean_set_eventIsDoc(events):
 
 def cut_intervals_extract_features(dataset, events, vectorizer, N=12, K=5000):
     '''
-    For the RNN model with variable size non-empty intervals
+    For the RNN model with variable size non-empty intervals. Inspired from the paper
+    "Detecting Rumors from Microblogs with Recurrent Neural Networks" of J. Ma et al.
     '''
     counter = 0
     featuresTensor = []
@@ -317,7 +310,7 @@ def extractFeatures(dataset, events, vectorizer, K=5000):
 def cutSameIntervals_extractFeatures(dataset, events, vectorizer, N=12, K=5000):
     '''
     Separate the events in a FIXED number of intervals, which have the SAME size. There may thus be
-    EMPTY intervals.
+    EMPTY intervals. This is for the RNN approach
     '''
     counter = 0
     featuresTensor = []
@@ -415,85 +408,70 @@ def cutSameIntervals_extractFeatures(dataset, events, vectorizer, N=12, K=5000):
     return featuresTensor
 
 
-
-if __name__ == "__main__":
+def extractFeatures_doc2vec(dataset, events, vectorizer, K=5000):
     '''
-    ######## PART 1: getting dataset, splitting it and cleaning it #######
-    
-    ## LOAD DATASET ##
-    # Extract events ID
-    dataset = CQRI('../twitter.txt')
-    events = dataset.get_dict()   # start Jupyter with the command line: --NotebookApp.iopub_data_rate_limit=10000000000
-                                  # for ex.: ipython3 notebook --NotebookApp.iopub_data_rate_limit=10000000000
-    
-    print(events)
-    
-    ## SPLIT DATASET IN TRAINING AND TESTING ##
-    sorted_events_list = sorted(events.items(), key=lambda kv: kv[1])  # sort based on the key, to be able to split the dataset in a deterministic way
-    random.shuffle(sorted_events_list)
-    training_events_list = sorted_events_list[0:round(0.85*len(sorted_events_list))]
-    testing_events_list = sorted_events_list[round(0.85*len(sorted_events_list))+1:]
-    np.save('training_events_list.npy',training_events_list,allow_pickle=True)
-    np.save('testing_events_list.npy',testing_events_list,allow_pickle=True)
-    events_training = collections.OrderedDict(training_events_list)
-    events_testing = collections.OrderedDict(testing_events_list)
-    
-    # Training on the whole tweets dataset to learn the vocabulary
-    nbrEvents = 0
-    S_list_total = []
-    S_list_total_val = []
-    print("Number of events=",len(events))
-    
-    
-    #(Training + Validation) set
-    S_list_total = clean_set_eventIsDoc(events_training)
-    np.save('cleaned_tweets_train.npy',S_list_total)
-    #Testing set
-    S_list_total_val = clean_set_eventIsDoc(events_testing)
-    np.save('cleaned_tweets_test.npy',S_list_total_val)
-    
-    
-    ######## END OF PART 1: TO COMMENT WHEN S_list_total IS SAVED #######
-    
+    For the simple ANN model
     '''
+    counter = 0
+    featuresMatrix = []
 
-    ####### PART 2: CUT IN INTERVAL AND EXTRACT FEATURES #######
+    for keyEvent in events:
+        counter += 1
+        print(counter)
+        if os.path.isfile('../dataset/rumdect/tweets/' + keyEvent + '.json'):  # check that the event file exists
+            dico = dataset.get_tweets('../dataset/rumdect/tweets/' + keyEvent + '.json')
+            ev = events[keyEvent]
+            label = ev[1]
 
-    # Parameters
-    N = 12 #reference number of intervals
-    K = 2500
+            S_list = []
 
-    #Train vectorizer
-    S_list_total=np.load('output_rnn_constant/cleaned_tweets_train.npy')
-    vectorizer = TfidfVectorizer(max_features=K,stop_words='english')
-    dummy = vectorizer.fit(S_list_total)
-    #print(vectorizer.vocabulary_)
-    #del S_list_total # delete this variable to free memory
+            for keyTweet in dico:  # iterates over the keys
+                date, text = dico[keyTweet]
+                # print(date)
 
+                text = clean_single_text(text, date)
 
-    #Extract features
-
-    training_events_list = np.load('training_events_list.npy',allow_pickle=True) # load training event list
-    events_training = collections.OrderedDict(training_events_list) # convert it back to dictionary
-
-    val_events_list = np.load('testing_events_list.npy',allow_pickle=True) # load training event list
-    events_val = collections.OrderedDict(val_events_list) # convert it back to dictionary
-
-
-    dataset = CQRI('../twitter.txt') # recreate it here when first part is commented
-
-    featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_training, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
-    #featuresTensor = cutSameIntervals_extractFeatures(dataset=dataset, events=events_training, vectorizer=vectorizer, K=K)
-    np.save('output_rnn_variable/featuresTensor_train.npy',featuresTensor)
-
-    featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_val, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
-    #featuresTensor = cutSameIntervals_extractFeatures(dataset=dataset, events=events_val, vectorizer=vectorizer, K=K)
-    np.save('output_rnn_variable/featuresTensor_test.npy',featuresTensor)
+                if text is not None:
+                    S_list.append(text)
 
 
-    #print(featuresTensor)
+            full_text = ' '.join(S_list)
+
+            test_data = word_tokenize(full_text.lower())
+            vector = model.infer_vector(test_data)
+            featuresMatrix.append((vector, label))
+
+    return featuresMatrix
 
 
-    #featuresTensor=np.load('featuresTensor.npy')
+def train_doc2vec(K):
+    ''' Code from https://medium.com/@mishra.thedeepak/doc2vec-simple-implementation-example-df2afbbfbad5?fbclid=IwAR2eI-A10OVRINN6fvrLoxEj5eVdRrif5kkzMDjT3CRlZJOFKwV5eLXpBw8'''
+    max_epochs = 100
+    vec_size = K
+    alpha = 0.025
 
-    ######## END OF PART 2 ########
+    S_list_total=np.load('output_rnn_constant/cleaned_tweets_train.npy',mmap_mode='r') # each event is a document
+    #S_list_total = read_npy_chunk('cleaned_tweets_train.npy',1,100)
+    tagged_data = [TaggedDocument(words=word_tokenize(_d.lower()), tags=[str(i)]) for i, _d in enumerate(S_list_total)]
+
+    model = Doc2Vec(size=vec_size,
+                    alpha=alpha,
+                    min_alpha=0.00025,
+                    min_count=1,
+                    dm=1)
+
+    model.build_vocab(tagged_data)
+
+    for epoch in range(max_epochs):
+        #print('iteration {0}'.format(epoch))
+        print("Doc2vec training epoch: ",epoch)
+        model.train(tagged_data,
+                    total_examples=model.corpus_count,
+                    epochs=model.iter)
+        # decrease the learning rate
+        model.alpha -= 0.0002
+        # fix the learning rate, no decay
+        model.min_alpha = model.alpha
+
+    model.save("d2v_2500.model")
+    print("Model Saved")
