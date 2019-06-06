@@ -5,7 +5,10 @@
 1) Clone this repository
 
 2) To test the networks, please download the "checkpoints" directory and "feature_extraction" directory from the following drive:
-  https://drive.google.com/drive/folders/1d5ZM1d0MI_Ymnf4n-qKNjP-Rkf0H5LaL?usp=sharing and extract the zip files contained in these folders. The path should match the google drive directory name, i.e., the content of "feature_extraction/features.zip" should be extracted to make a directly in the "feature_extraction" folder.
+	https://drive.google.com/drive/folders/1d5ZM1d0MI_Ymnf4n-qKNjP-Rkf0H5LaL?usp=sharing
+	and extract the zip files contained in these folders. The path should match the google drive directory name, i.e., the content of "feature_extraction/features.zip" should be extracted to make a directly in the "feature_extraction" folder.
+  
+	These files contain pre-trained networks as well as the extracted feature vectors.
   
 3) Run <code>test.py</code> by selecting the desired configuration in the python script
 
