@@ -121,6 +121,7 @@ class CQRI():
 
                 #print('building entry', eid, label, tweet_ids)
 
+
             return tweet_dict, key_list
 
 

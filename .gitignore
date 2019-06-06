@@ -11,6 +11,7 @@ feature_extraction/output_doc2vec_ann/
 feature_extraction/output_doc2vec_rnn_variable/
 feature_extraction/output_doc2vec_rnn_constant/
 feature_extraction/d2v.model
+feature_extraction/cleaned_tweets/
 checkpoints/
 logs/
 doc2vec/hidden/

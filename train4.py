@@ -164,37 +164,38 @@ if __name__ == '__main__':
     train_path = 'feature_extraction/output_rnn_constant/featuresTensor_train.npy'
     test_path = 'feature_extraction/output_rnn_constant/featuresTensor_test.npy'
 
-    NAME = 'test_GRU2_doc2vec_variable_ensemble'
-    LR = 5e-5
-    EMBEDDING = 32
+    NAME = 'RNN_FINAL_TFIDF_CONSTANT_BasicRNN_tanh'
+    #NAME = 'rnn_test'
+    LR = 1e-4
+    EMBEDDING = 40
     EMBEDDING_LAYER = True
-    REGULARIZATION = 0.005
-    DROPOUT = 0.5
-    MODEL = rnn.GRURNN
+    REGULARIZATION = 0.01
+    DROPOUT = 0.4
+    MODEL = rnn.LSTM2RNN
 
-    val = train_k_fold(train_path, test_path, name=NAME, epochs=200, lr=LR, embedding_size=EMBEDDING,
-                   hidden_layers=2, regularization=REGULARIZATION, dropout_rate=DROPOUT, model_type=MODEL, embedding_layer=EMBEDDING_LAYER)
-    print(val['training_scores'])
-    print(val['validation_scores'])
-    print(val['test_scores'])
-    print(val['best_fold'])
+    val = train_k_fold(train_path, test_path, name=NAME, epochs=300, lr=LR, embedding_size=EMBEDDING,
+                   hidden_layers=1, regularization=REGULARIZATION, dropout_rate=DROPOUT, model_type=MODEL, embedding_layer=EMBEDDING_LAYER)
     print(val['accuracy'])
+    print(np.mean(np.array(val['training_scores'])))
+    print(np.std(np.array(val['training_scores'])))
+    print(np.mean(np.array(val['validation_scores'])))
+    print(np.std(np.array(val['validation_scores'])))
 
     embedding = [20, 40, 80]
 
     exit()
 
-    train_score, val_score, test_score = [], [], []
+    train_score, val_score, test_score, accuracies = [], [], [], []
 
     idx = 0
     for d in embedding:
         val = train_k_fold(train_path, test_path, name=NAME+str(idx), epochs=200, lr=LR, embedding_size=d, hidden_layers=1, regularization=REGULARIZATION, dropout_rate=DROPOUT, model_type=MODEL)
         print(val)
 
-        train_score.append(val[0])
-        val_score.append(val[1])
-        test_score.append(val[2])
-
+        train_score.append(val['training_scores'])
+        val_score.append(val['validation_scores'])
+        test_score.append(val['test_scores'])
+        accuracies.append(val['accuracy'])
         idx += 1
 
     print(train_score)

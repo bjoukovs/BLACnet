@@ -1,4 +1,4 @@
-from functions import *
+import functions
 
 ##### IMPORT LIBRAIRIES #####
 #Append path
@@ -11,7 +11,7 @@ sys.path.append('output/')
 import os
 
 # CQRI to get tweets
-from QCRI import CQRI
+from dataset.QCRI import CQRI
 import preprocessor as p
 
 # Librairies for computations and ML
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     K = 2500
 
     #Train vectorizer
-    S_list_total=np.load('cleaned_tweets_train.npy')
+    S_list_total=np.load('cleaned_tweets/cleaned_tweets_train.npy')
     vectorizer = TfidfVectorizer(max_features=K,stop_words='english')
     dummy = vectorizer.fit(S_list_total)
 
@@ -57,21 +57,22 @@ if __name__ == "__main__":
     events_val = collections.OrderedDict(val_events_list) # convert it back to dictionary
     dataset = CQRI('../twitter.txt') # recreate it here when first part is commented
 
+
     #### Choices for feature extraction: ####
     # 1) variable intervals for RNN
-    featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_training, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
-    np.save('output_rnn_variable/featuresTensor_train.npy',featuresTensor)
-    featuresTensor = cut_intervals_extract_features(dataset=dataset, events=events_val, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
-    np.save('output_rnn_variable/featuresTensor_test.npy',featuresTensor)
+    featuresTensor = functions.cut_intervals_extract_features(dataset=dataset, events=events_training, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
+    #np.save('output_rnn_variable/featuresTensor_train.npy',featuresTensor)
+    featuresTensor = functions.cut_intervals_extract_features(dataset=dataset, events=events_val, vectorizer=vectorizer, N=N, K=K) # list containing tuples (matrixOfFeatures,label), where matrixOfFeatures is a matrix of size K x (number of time interval)
+    #np.save('output_rnn_variable/featuresTensor_test.npy',featuresTensor)
 
     # 2) fixed intervals for RNN
-    #featuresTensor = cutSameIntervals_extractFeatures(dataset=dataset, events=events_training, vectorizer=vectorizer, K=K)
+    #featuresTensor = functions.cutSameIntervals_extractFeatures(dataset=dataset, events=events_training, vectorizer=vectorizer, K=K)
     #np.save('output_rnn_fixed/featuresTensor_train.npy',featuresTensor)
-    #featuresTensor = cutSameIntervals_extractFeatures(dataset=dataset, events=events_val, vectorizer=vectorizer, K=K)
+    #featuresTensor = functions.cutSameIntervals_extractFeatures(dataset=dataset, events=events_val, vectorizer=vectorizer, K=K)
     #np.save('output_rnn_fixed/featuresTensor_test.npy',featuresTensor)
 
     # 3) no interval
-    #featuresTensor = extractFeatures(dataset=dataset, events=events_training, vectorizer=vectorizer, K=K)
+    #featuresTensor = functions.extractFeatures(dataset=dataset, events=events_training, vectorizer=vectorizer, K=K)
     #np.save('output_ann/featuresTensor_train.npy',featuresTensor)
-    #featuresTensor = extractFeatures(dataset=dataset, events=events_val, vectorizer=vectorizer, K=K)
+    #featuresTensor = functions.extractFeatures(dataset=dataset, events=events_val, vectorizer=vectorizer, K=K)
     #np.save('output_ann/featuresTensor_test.npy',featuresTensor)

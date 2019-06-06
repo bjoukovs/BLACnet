@@ -1,9 +1,9 @@
 clear all,
 close all;
 
-data = load('ANN/FINAL_DOC2VEC_2LAYER_DROPOUT.mat')
+data = load('ANN/FINAL_EMBEDDING_2LAYERS.mat')
 
-embedding = data.dropout;
+embedding = data.embedding;
 train = data.train
 val = data.val;
 test = data.test;

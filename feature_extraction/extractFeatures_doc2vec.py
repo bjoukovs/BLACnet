@@ -1,4 +1,4 @@
-from functions import *
+import functions
 
 ##### IMPORT LIBRAIRIES #####
 #Append path
@@ -45,7 +45,7 @@ if __name__ == "__main__":
     K = 2500
 
     # Train doc2vec once, then comment next line
-    train_doc2vec(K) # do it once and then comment this line
+    #functions.train_doc2vec(K) # do it once and then comment this line
     model= Doc2Vec.load("d2v_2500.model")
 
     # Load list of events from splitAndClean.py
@@ -56,5 +56,5 @@ if __name__ == "__main__":
     dataset = CQRI('../twitter.txt') # recreate it here when first part is commented
 
     # Extract features for ANN
-    featuresTensor = extractFeatures_doc2vec(dataset, events_training, model, K=K)
+    featuresTensor = functions.extractFeatures_doc2vec(dataset, events_training, model, K=K)
     np.save('output_doc2vec_ann/featuresTensor_test_2500.npy',featuresTensor)

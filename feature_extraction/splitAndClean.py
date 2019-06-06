@@ -1,4 +1,4 @@
-from functions import *
+import functions
 
 ##### IMPORT LIBRAIRIES #####
 #Append path
@@ -9,7 +9,7 @@ sys.path.append('output/')
 # Import OS
 import os
 # CQRI to get tweets
-from QCRI import CQRI
+from dataset.QCRI import CQRI
 import preprocessor as p
 # Librairies for computations and ML
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -40,8 +40,7 @@ if __name__ == "__main__":
     ## LOAD DATASET ##
     # Extract events ID
     dataset = CQRI('../twitter.txt')
-    events = dataset.get_dict()   # start Jupyter with the command line: --NotebookApp.iopub_data_rate_limit=10000000000
-                                  # for ex.: ipython3 notebook --NotebookApp.iopub_data_rate_limit=10000000000
+    events = dataset.get_dict()
 
     print(events)
 
@@ -63,8 +62,8 @@ if __name__ == "__main__":
 
 
     #(Training + Validation) set
-    S_list_total = clean_set_eventIsDoc(events_training,dataset)
-    np.save('cleaned_tweets_train.npy',S_list_total)
+    S_list_total = functions.clean_set_eventIsDoc(events_training,dataset)
+    np.save('cleaned_tweets/cleaned_tweets_train.npy',S_list_total)
     #Testing set
-    S_list_total_val = clean_set_eventIsDoc(events_testing,dataset)
-    np.save('cleaned_tweets_test.npy',S_list_total_val)
+    S_list_total_val = functions.clean_set_eventIsDoc(events_testing,dataset)
+    np.save('cleaned_tweets/cleaned_tweets_test.npy',S_list_total_val)

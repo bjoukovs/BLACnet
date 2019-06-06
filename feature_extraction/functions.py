@@ -438,7 +438,7 @@ def extractFeatures_doc2vec(dataset, events, vectorizer, K=5000):
             full_text = ' '.join(S_list)
 
             test_data = word_tokenize(full_text.lower())
-            vector = model.infer_vector(test_data)
+            vector = vectorizer.infer_vector(test_data)
             featuresMatrix.append((vector, label))
 
     return featuresMatrix
@@ -450,7 +450,7 @@ def train_doc2vec(K):
     vec_size = K
     alpha = 0.025
 
-    S_list_total=np.load('output_rnn_constant/cleaned_tweets_train.npy',mmap_mode='r') # each event is a document
+    S_list_total=np.load('cleaned_tweets/cleaned_tweets_train.npy',mmap_mode='r') # each event is a document
     #S_list_total = read_npy_chunk('cleaned_tweets_train.npy',1,100)
     tagged_data = [TaggedDocument(words=word_tokenize(_d.lower()), tags=[str(i)]) for i, _d in enumerate(S_list_total)]
 

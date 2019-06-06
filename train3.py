@@ -118,7 +118,7 @@ def train_k_fold(train_path, test_path, **kwargs):
         optimizer = keras.optimizers.RMSprop(lr=opts['lr'])
 
         # Model checkpoint
-        checkpoint_name = 'checkpoints/ANN_DOC2VEC' + str(fold) + '.hdf5'
+        checkpoint_name = 'checkpoints/ANN_TFIDF_1LAYER' + str(fold) + '.hdf5'
         checkpoint = keras.callbacks.ModelCheckpoint(checkpoint_name, monitor='val_categorical_accuracy',
                                                      save_best_only=True)
 
@@ -162,17 +162,17 @@ def train_k_fold(train_path, test_path, **kwargs):
 
 if __name__ == '__main__':
 
-    train_path = 'feature_extraction/output_doc2vec_ann/featuresTensor_train_2500.npy'
-    test_path = 'feature_extraction/output_doc2vec_ann/featuresTensor_test_2500.npy'
+    train_path = 'feature_extraction/output2/featuresTensor_train.npy'
+    test_path = 'feature_extraction/output2/featuresTensor_val.npy'
 
-    NAME = 'ANN_DOC2VEC_FINAL'
+    NAME = 'ANN_TFIDF_FINAL_1layer'
     LR = 1e-4
-    EMBEDDING = 20
+    EMBEDDING = 40
     REGULARIZATION = 0.1
     DROPOUT = 0.5
 
     val = train_k_fold(train_path, test_path, name=NAME, epochs=300, lr=LR, embedding_size=EMBEDDING,
-                       hidden_layers=2, regularization=REGULARIZATION, dropout_rate=DROPOUT)
+                       hidden_layers=1, regularization=REGULARIZATION, dropout_rate=DROPOUT)
     print(val['accuracy'])
     print(np.mean(np.array(val['validation_scores'])))
     print(np.std(np.array(val['validation_scores'])))
