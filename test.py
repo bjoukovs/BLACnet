@@ -24,7 +24,7 @@ TEST_PATH = 'feature_extraction/output_doc2vec_ann/featuresTensor_test_2500.npy'
 TRAIN_PATH = 'feature_extraction/output_doc2vec_ann/featuresTensor_train_2500.npy'
 NET_NAME = 'ANN_DOC2VEC'
 '''
-
+'''
 # RNN TF-IDF VARIABLE #
 TYPE = 'rnn_tfidf_variable'
 TEST_PATH = 'feature_extraction/output_rnn_variable/featuresTensor_test.npy'
@@ -32,7 +32,7 @@ TRAIN_PATH = 'feature_extraction/output_rnn_variable/featuresTensor_train.npy'
 NET_NAME = 'LSTM2_VARIABLE'
 N=12
 K=2500
-
+'''
 '''
 # RNN TF-IDF CONSTANT #
 TYPE = 'rnn_tfidf_constant'
