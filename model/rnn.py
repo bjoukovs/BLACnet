@@ -81,6 +81,7 @@ class GRURNN():
         #input layer
         if embedding_layer:
             self.model.add(keras.layers.Dense(units=embedding_size, kernel_regularizer=keras.regularizers.l2(reg)))
+            #self.model.add(keras.layers.BatchNormalization())
             self.model.add(keras.layers.Activation('relu'))
 
         # RNN

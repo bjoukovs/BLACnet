@@ -1,9 +1,9 @@
 clear all,
 close all;
 
-data = load('ANN/FINAL_DOC2VEC_2LAYER_DROPOUT.mat')
+data = load('ANN/FINAL_DOC2VEC_2LAYER_REG.mat')
 
-embedding = data.dropout;
+embedding = data.regularization;
 train = data.train
 val = data.val;
 test = data.test;
@@ -17,7 +17,7 @@ semilogx(embedding, accs)
 
 legend('Train acc', 'Val acc', 'Test acc')
 
-%set(gca, 'XScale', 'log')
+set('gca)
 
 
 

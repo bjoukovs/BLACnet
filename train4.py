@@ -56,6 +56,9 @@ def train_k_fold(train_path, test_path, **kwargs):
     #inputs_train = (inputs_train - train_x_mean)/train_x_std
     #inputs_test = (inputs_test - train_x_mean)/train_x_std
 
+    '''print(np.mean(inputs_test, axis=(0,1)), np.std(inputs_test, axis=(0,1)))
+    print(np.mean(inputs_train, axis=(0, 1)), np.std(inputs_train, axis=(0, 1)))'''
+
 
     print(len(np.where(labels_train==1)[0]))
     print(len(np.where(labels_train==0)[0]))
@@ -85,6 +88,8 @@ def train_k_fold(train_path, test_path, **kwargs):
     validation_scores = []
     test_scores = []
 
+    predictions = []
+
 
     for fold in range(foldings):
 
@@ -112,43 +117,68 @@ def train_k_fold(train_path, test_path, **kwargs):
                       metrics=[keras.metrics.categorical_accuracy, keras.metrics.categorical_crossentropy])
 
 
-        checkpoint = keras.callbacks.ModelCheckpoint('checkpoints/temp.hdf5', monitor='val_categorical_accuracy', save_best_only=True)
+        #Model checkpoint
+        checkpoint_name = 'checkpoints/temp'+str(fold)+'.hdf5'
+        checkpoint = keras.callbacks.ModelCheckpoint(checkpoint_name, monitor='val_categorical_accuracy', save_best_only=True)
+
+        #Monitoring and early stopping
         tb = keras.callbacks.TensorBoard('logs/' + opts['name']+ '/fold_'+str(fold))
         # lrshedule = keras.callbacks.ReduceLROnPlateau(monitor='val_categorical_accuracy', factor=0.5, patience=5, min_lr=5e-7, verbose=1)
         es = keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=20)
 
         #### Train ####
         model.fit(x=cut_train_x, y=cut_train_y, validation_data=(cut_val_x, cut_val_y), batch_size=opts['batch_size'],
-                  epochs=opts['epochs'], verbose=2, callbacks=[tb, checkpoint, es], shuffle=True)
+                   epochs=opts['epochs'], verbose=2, callbacks=[tb, checkpoint, es], shuffle=True)
 
-        model.load_weights('checkpoints/temp.hdf5')
+
+        #evaluate
+        #model.load_weights(checkpoint_name)
+        del model
+
+        model = keras.models.load_model(checkpoint_name)
         training_scores.append(model.evaluate(cut_train_x, cut_train_y)[1])
         validation_scores.append(model.evaluate(cut_val_x, cut_val_y)[1])
         test_scores.append(model.evaluate(inputs_test, labels_test)[1])
 
+        predictions.append(model.predict(inputs_test))
+
 
     best_fold = np.argmax(validation_scores)
 
-    return(training_scores[best_fold], validation_scores[best_fold], test_scores[best_fold])
+    test_acc = u.majority_voting(np.array(predictions), labels_test)
+
+    outputs = {'best_fold':best_fold,
+               'training_scores':training_scores,
+               'validation_scores':validation_scores,
+               'test_scores':test_scores,
+               'predictions':predictions,
+               'accuracy':test_acc}
+
+
+    return(outputs)
 
 
 
 if __name__ == '__main__':
 
-    train_path = 'feature_extraction/output_doc2vec_rnn_variable/featuresTensor_train_2500.npy'
-    test_path = 'feature_extraction/output_doc2vec_rnn_variable/featuresTensor_test_2500.npy'
+    train_path = 'feature_extraction/output_rnn_constant/featuresTensor_train.npy'
+    test_path = 'feature_extraction/output_rnn_constant/featuresTensor_test.npy'
 
-    NAME = 'test_GRU2_DOC2VEC_variable_'
+    NAME = 'test_GRU2_doc2vec_variable_ensemble'
     LR = 5e-5
-    EMBEDDING = 40
+    EMBEDDING = 32
     EMBEDDING_LAYER = True
-    REGULARIZATION = 0.01
-    DROPOUT = 0.4
-    MODEL = rnn.GRU2RNN
+    REGULARIZATION = 0.005
+    DROPOUT = 0.5
+    MODEL = rnn.GRURNN
 
     val = train_k_fold(train_path, test_path, name=NAME, epochs=200, lr=LR, embedding_size=EMBEDDING,
                    hidden_layers=2, regularization=REGULARIZATION, dropout_rate=DROPOUT, model_type=MODEL, embedding_layer=EMBEDDING_LAYER)
-    print(val)
+    print(val['training_scores'])
+    print(val['validation_scores'])
+    print(val['test_scores'])
+    print(val['best_fold'])
+    print(val['accuracy'])
 
     embedding = [20, 40, 80]
 

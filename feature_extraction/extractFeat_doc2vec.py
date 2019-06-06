@@ -385,11 +385,11 @@ dataset = CQRI('../twitter.txt') # recreate it here when first part is commented
 
 #featuresTensor = extractFeatures_doc2vec(dataset, events_training, model, K=K)
 #featuresTensor = cut_intervals_extract_features(dataset, events_training, vectorizer=model, K=K, N=N)
-featuresTensor = cutSameIntervals_extractFeatures(dataset, events_training, vectorizer=model, K=K, N=N)
-np.save('output_doc2vec_rnn_constant/featuresTensor_train_2500.npy',featuresTensor)
+#featuresTensor = cutSameIntervals_extractFeatures(dataset, events_training, vectorizer=model, K=K, N=N)
+#np.save('output_doc2vec_rnn_variable/featuresTensor_train_2500.npy',featuresTensor)
 #featuresTensor = extractFeatures_doc2vec(dataset, events_val, model, K=K)
 #featuresTensor = cut_intervals_extract_features(dataset, events_val, vectorizer=model, K=K, N=N)
-featuresTensor = cutSameIntervals_extractFeatures(dataset, events_training, vectorizer=model, K=K, N=N)
+featuresTensor = cutSameIntervals_extractFeatures(dataset, events_val, vectorizer=model, K=K, N=N)
 np.save('output_doc2vec_rnn_constant/featuresTensor_test_2500.npy',featuresTensor)
 
 

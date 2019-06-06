@@ -56,3 +56,14 @@ def format_inputs_notime(inputs):
     return np.array(vectors), np.array(labels)
 
 
+
+def majority_voting(predictions, labels):
+    #predictions = predictions > 0.5
+    predictions = np.sum(predictions, axis=0)
+    predictions = np.argmax(predictions, axis=-1)
+
+    correct = np.bincount(predictions == np.argmax(labels, axis=-1))[1]
+    accuracy = correct/labels.shape[0]
+
+    return(accuracy)
+
